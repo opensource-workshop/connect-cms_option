@@ -14,19 +14,19 @@
 
 @section("plugin_setting_$frame->id")
 @if(isset($cc_massage))
-    <div class="alert alert-warning" style="margin-top: 10px;">
+    <div class="alert alert-warning">
         <i class="fas fa-exclamation-circle"></i>
         {{$cc_massage}}
     </div>
 @endif
 
 @if (!$covid || !$covid->id)
-    <div class="alert alert-warning" style="margin-top: 10px;">
+    <div class="alert alert-warning">
         <i class="fas fa-exclamation-circle"></i>
         表示するコンテンツを選択するか、新規作成してください。
     </div>
 @else
-    <div class="alert alert-info" style="margin-top: 10px;">
+    <div class="alert alert-info">
         <i class="fas fa-exclamation-circle"></i>
         @if ($action == 'createBuckets')
             新しいデータセット設定を登録します。
@@ -63,6 +63,12 @@
             <input type="text" name="source_base_url" value="{{old('source_base_url', $covid->source_base_url)}}" class="form-control">
             @if ($errors && $errors->has('source_base_url')) <div class="text-danger">{{$errors->first('source_base_url')}}</div> @endif
             <span class="text-muted">/で終わってください。</span><br>
+
+            <div class="alert alert-info small">
+                ジョンズホプキンス大学の Github の raw データの URL は以下になります。（2020-06-23 時点）<br />
+                https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_daily_reports/
+            </div>
+
         </div>
     </div>
 

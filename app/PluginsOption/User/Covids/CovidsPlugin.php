@@ -460,20 +460,28 @@ class CovidsPlugin extends UserPluginOptionBase
         // CSV の確認
         $csv_last_date = '';
         $csv_next_date = '';
+        $csv_first_date = '';
         $paths = File::glob(storage_path() . '/app/plugins/covids/' . $covid->id . '/*');
         if (!empty($paths)) {
             rsort($paths);
             $csv_last_date_mdy = pathinfo(basename($paths[0]))['filename'];
             $csv_last_date = date('Y-m-d', strtotime(str_replace('-', '/', $csv_last_date_mdy)));
             $csv_next_date = date('Y-m-d', strtotime('+1 day', strtotime($csv_last_date)));
+
+            $csv_first_date_mdy = pathinfo(basename(end($paths)))['filename'];
+            $csv_first_date = date('Y-m-d', strtotime(str_replace('-', '/', $csv_first_date_mdy)));
         }
 
-        // 集計データがあれば、その日の次の
+        // 集計データを確認して、取り込み日を判定
         $covid_report_last_day = CovidDailyReport::select('target_date')
                                                  ->orderBy('target_date', 'DESC')
                                                  ->first();
         if (!empty($covid_report_last_day)) {
+            // 集計データがあれば、その日の次の日
             $start_date = date('Y-m-d', strtotime('+1 day', strtotime($covid_report_last_day->target_date)));
+        } else {
+            // 集計データがなければ、取り込んだCSV の一番古い日
+            $start_date = $csv_first_date;
         }
 
         // 画面で指定があった場合

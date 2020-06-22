@@ -42,6 +42,10 @@
             <input type="text" name="csv_next_date" value="{{old('csv_next_date', $csv_next_date)}}" class="form-control">
             @if ($errors && $errors->has('csv_next_date')) <div class="text-danger">{{$errors->first('csv_next_date')}}</div> @endif
             <span class="text-muted">※ 年-月-日で入力してください。</span><br>
+
+            <div class="alert alert-info small">
+                ジョンズホプキンス大学の Github の データの場合は 2020-01-22 から始まります。<br />
+            </div>
         </div>
     </div>
     {{-- Submitボタン --}}
