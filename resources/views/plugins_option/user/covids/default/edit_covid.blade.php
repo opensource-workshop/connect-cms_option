@@ -9,7 +9,7 @@
 
 @section("core.cms_frame_edit_tab_$frame->id")
     {{-- プラグイン側のフレームメニュー --}}
-    @include('plugins.user.covids.covids_frame_edit_tab')
+    @include('plugins_option.user.covids.covids_frame_edit_tab')
 @endsection
 
 @section("plugin_setting_$frame->id")

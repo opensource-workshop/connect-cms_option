@@ -10,7 +10,7 @@
 @section("plugin_contents_$frame->id")
 
 @php
-    $option_blade_path = 'plugins.user.covids.default.select_option';
+    $option_blade_path = 'plugins_option.user.covids.default.select_option';
 @endphp
 
 <div class="alert alert-primary">
@@ -24,7 +24,7 @@
     <div class="form-group row mb-3">
         <div class="col-sm-4">
             {{-- 日別状況表 --}}
-            @include('plugins.user.covids.default.covids_view_type_select')
+            @include('plugins_option.user.covids.default.covids_view_type_select')
         </div>
         <div class="col-sm-4">
             <select class="form-control" name="target_date" onchange="javascript:submit(this.form);">
@@ -40,7 +40,7 @@
         </div>
         <div class="col-sm-4">
             {{-- 表示件数 --}}
-            @include('plugins.user.covids.default.covids_view_count')
+            @include('plugins_option.user.covids.default.covids_view_count')
         </div>
     </div>
 </form>
@@ -69,7 +69,7 @@
         ]);
 */
         {{-- グラフデータ --}}
-        @include('plugins.user.covids.default.covids_graph_data')
+        @include('plugins_option.user.covids.default.covids_graph_data')
 
         // オプション設定
         var options = {

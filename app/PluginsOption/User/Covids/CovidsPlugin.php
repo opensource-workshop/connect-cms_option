@@ -13,10 +13,10 @@ use Storage;
 
 use App\Models\Common\Buckets;
 use App\Models\Common\Frame;
-use App\Models\User\Covids\Covid;
-use App\Models\User\Covids\CovidDailyReport;
+use App\ModelsOption\User\Covids\Covid;
+use App\ModelsOption\User\Covids\CovidDailyReport;
 
-use App\Plugins\User\UserPluginBase;
+use App\PluginsOption\User\UserPluginOptionBase;
 
 /**
  * 感染症数値集計プラグイン
@@ -28,7 +28,7 @@ use App\Plugins\User\UserPluginBase;
  * @category 感染症数値集計プラグイン(covid)
  * @package Contoroller
  */
-class CovidsPlugin extends UserPluginBase
+class CovidsPlugin extends UserPluginOptionBase
 {
 
     /**
