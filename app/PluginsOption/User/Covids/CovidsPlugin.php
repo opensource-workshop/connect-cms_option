@@ -142,7 +142,10 @@ class CovidsPlugin extends UserPluginOptionBase
         }
 
         // データのある最後の日
-        $last_date = $covid_report_days->first()->target_date;
+        $last_date = '';
+        if (!$covid_report_days->isEmpty()) {
+            $last_date = $covid_report_days->first()->target_date;
+        }
 
         // 表示件数
         $view_count = 5;
