@@ -19,7 +19,7 @@
     @endif
 </div>
 
-<form action="{{url('/')}}/plugin/covids/index/{{$page->id}}/{{$frame_id}}#frame-{{$frame_id}}" method="POST" class="">
+<form action="{{url('/')}}/plugin/covids/search/{{$page->id}}/{{$frame_id}}#frame-{{$frame_id}}" method="POST" class="">
     {{csrf_field()}}
     <div class="form-group row mb-3">
         <div class="col-sm-4">
@@ -72,6 +72,11 @@
         </tr>
         @endforeach
     </table>
+</div>
+
+{{-- ページング処理 --}}
+<div class="text-center">
+    {{ $covid_daily_reports->links() }}
 </div>
 
 <div class="mt-3" role="alert">

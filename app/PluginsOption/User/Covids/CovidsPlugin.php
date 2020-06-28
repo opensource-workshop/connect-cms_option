@@ -40,11 +40,13 @@ class CovidsPlugin extends UserPluginOptionBase
         $functions = array();
         $functions['get']  = [
             'getData',
+            'search',
         ];
         $functions['post'] = [
             'change',
             'importData',
             'pullData',
+            'search',
         ];
         return $functions;
     }
@@ -111,6 +113,14 @@ class CovidsPlugin extends UserPluginOptionBase
     /* 画面アクション関数 */
 
     /**
+     *  絞り込みアクション
+     */
+    public function search($request, $page_id, $frame_id)
+    {
+        return $this->index($request, $page_id, $frame_id);
+    }
+
+    /**
      *  データ初期表示関数
      *  コアがページ表示の際に呼び出す関数
      */
@@ -148,7 +158,7 @@ class CovidsPlugin extends UserPluginOptionBase
         }
 
         // 表示件数
-        $view_count = 5;
+        $view_count = 10;
         if ($request->filled('view_count')) {
             $view_count = $request->view_count;
         }
@@ -346,12 +356,12 @@ class CovidsPlugin extends UserPluginOptionBase
         $covid_daily_reports_query->orderBy('country_region');
 
         // 表示件数
-        if ($view_count != "all") {
-            $covid_daily_reports_query->limit($view_count);
-        }
+        //if ($view_count != "all") {
+        //    $covid_daily_reports_query->limit($view_count);
+        //}
 
         // get ＆ return
-        $covid_daily_reports = $covid_daily_reports_query->get();
+        $covid_daily_reports = $covid_daily_reports_query->paginate($view_count);
         return $covid_daily_reports;
     }
 
