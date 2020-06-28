@@ -166,10 +166,11 @@ class CovidsPlugin extends UserPluginOptionBase
         // 詳細データ取得
         if (strpos($view_type, 'graph_') === 0) {
             // グラフ
-            $covid_daily_reports = $this->getGraphReports($covid, $view_type, $target_date, $last_date, $view_count);
+            list($covid_daily_reports, $coutries) = $this->getGraphReports($covid, $view_type, $target_date, $last_date, $view_count);
             $template = 'covids_graph';
         } else {
             // 表
+            $coutries = null;
             $covid_daily_reports = $this->getDailyReports($covid, $view_type, $target_date, $view_count);
             $template = 'covids';
         }
@@ -180,6 +181,7 @@ class CovidsPlugin extends UserPluginOptionBase
             'covid' => $covid,
             'covid_daily_reports' => $covid_daily_reports,
             'covid_report_days'   => $covid_report_days,
+            'coutries'            => $coutries,
             'view_type'           => $view_type,
             'target_date'         => $target_date,
             'view_count'          => $view_count,
@@ -214,29 +216,33 @@ class CovidsPlugin extends UserPluginOptionBase
 
         // 条件の編集(対象国の絞り込み、対象の詳細データ取得・絞り込みで使用)
         $cond = 'SUM(confirmed)';  // 初期値：感染者推移
-        if ($view_type == 'graph_deaths') {
+        if ($view_type == 'graph_deaths' || $view_type == 'graph_deaths_japan') {
             $cond = 'SUM(deaths)';  // 死亡者推移
-        } elseif ($view_type == 'graph_recovered') {
+        } elseif ($view_type == 'graph_recovered' || $view_type == 'graph_recovered_japan') {
             $cond = 'SUM(recovered)';  // 回復者推移
-        } elseif ($view_type == 'graph_active') {
+        } elseif ($view_type == 'graph_active' || $view_type == 'graph_active_japan') {
             $cond = 'SUM(active)';  // 感染中推移
-        } elseif ($view_type == 'graph_fatality_rate_moment') {
+        } elseif ($view_type == 'graph_fatality_rate_moment' || $view_type == 'graph_fatality_rate_moment_japan') {
             $cond = 'TRUNCATE(SUM(deaths) / NULLIF(SUM(confirmed),0) * 100 + 0.05, 1)';  // 致死率(計算日)推移グラフ
-        } elseif ($view_type == 'graph_fatality_rate_estimation') {
+        } elseif ($view_type == 'graph_fatality_rate_estimation' || $view_type == 'graph_fatality_rate_estimation_japan') {
             $cond = 'TRUNCATE(SUM(deaths) / NULLIF((SUM(deaths) + SUM(recovered)),0) * 100 + 0.05, 1)';  // 致死率(予測)推移グラフ
-        } elseif ($view_type == 'graph_deaths_estimation') {
+        } elseif ($view_type == 'graph_deaths_estimation' || $view_type == 'graph_deaths_estimation_japan') {
             $cond = 'TRUNCATE(SUM(confirmed) * SUM(deaths) / NULLIF((SUM(deaths) + SUM(recovered)),0), 0)';  // 死亡者数(予測)推移グラフ
-        } elseif ($view_type == 'graph_active_rate') {
+        } elseif ($view_type == 'graph_active_rate' || $view_type == 'graph_active_rate_japan') {
             $cond = 'TRUNCATE(SUM(active) / NULLIF(SUM(confirmed),0) * 100 + 0.05, 1)';  // Active率推移グラフ
         }
 
         // 対象の国取得
-        $country_recs = CovidDailyReport::select('country_region')
-                                        ->where('target_date', $last_date)
-                                        ->groupBy("country_region")
-                                        ->orderByRaw($cond . ' DESC')
-                                        ->limit($view_count)
-                                        ->get();
+        $country_query = CovidDailyReport::select('country_region')
+                                         ->where('target_date', $last_date);
+        if (stripos($view_type, 'japan') !== false) {
+            $country_query->where('country_region', 'Japan');
+        }
+        $country_query->groupBy("country_region")
+                      ->orderByRaw($cond . ' DESC');
+                      //->limit($view_count)
+        $country_recs = $country_query->paginate($view_count);
+
         $countries = $country_recs->pluck('country_region');
 
         // 対象日付が空なら処理しない。
@@ -300,7 +306,7 @@ class CovidsPlugin extends UserPluginOptionBase
         }
         //Log::debug($graph_table);
 
-        return $graph_table;
+        return array($graph_table, $country_recs);
     }
 
     /**
