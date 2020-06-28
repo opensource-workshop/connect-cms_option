@@ -23,7 +23,7 @@
     {{csrf_field()}}
     <div class="form-group row mb-3">
         <div class="col-sm-4">
-            {{-- 日別状況表 --}}
+            {{-- 表示種類 --}}
             @include('plugins_option.user.covids.default.covids_view_type_select')
         </div>
         <div class="col-sm-4">
@@ -75,9 +75,11 @@
 </div>
 
 {{-- ページング処理 --}}
+{{--
 <div class="text-center">
     {{ $covid_daily_reports->links() }}
 </div>
+--}}
 
 <div class="mt-3" role="alert">
     <small>※ このプラグインでは、Google社の Google Charts サービスを使用してグラフを表示しています。</small>

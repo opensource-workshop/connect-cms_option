@@ -19,7 +19,7 @@
     @endif
 </div>
 
-<form action="{{url('/')}}/plugin/covids/index/{{$page->id}}/{{$frame_id}}#frame-{{$frame_id}}" method="POST" class="">
+<form action="{{url('/')}}/plugin/covids/search/{{$page->id}}/{{$frame_id}}#frame-{{$frame_id}}" method="POST" class="">
     {{csrf_field()}}
     <div class="form-group row mb-3">
         <div class="col-sm-4">
@@ -98,6 +98,13 @@
         chart.draw(data, options);
     }
 </script>
+
+{{-- ページング処理 --}}
+{{--
+<div class="text-center">
+    {{ $coutries->links() }}
+</div>
+--}}
 
 <div class="mt-3" role="alert">
     <small>※ このプラグインでは、Google社の Google Charts サービスを使用してグラフを表示しています。</small>

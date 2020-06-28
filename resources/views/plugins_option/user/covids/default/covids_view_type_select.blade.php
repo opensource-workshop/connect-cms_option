@@ -22,10 +22,22 @@
         @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_recovered', 'option_caption' => '回復者推移グラフ'])
         @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_active',    'option_caption' => '感染中推移グラフ'])
     </optgroup>
+    <optgroup label="グラフ（日本）">
+        @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_confirmed_japan', 'option_caption' => '感染者推移グラフ（日本）'])
+        @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_deaths_japan',    'option_caption' => '死亡者推移グラフ（日本）'])
+        @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_recovered_japan', 'option_caption' => '回復者推移グラフ（日本）'])
+        @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_active_japan',    'option_caption' => '感染中推移グラフ（日本）'])
+    </optgroup>
     <optgroup label="グラフ(計算値)">
         @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_fatality_rate_moment', 'option_caption' => '致死率(計算日)推移グラフ'])
         @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_fatality_rate_estimation', 'option_caption' => '致死率(予測)推移グラフ'])
         @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_deaths_estimation', 'option_caption' => '死亡者数(予測)推移グラフ'])
         @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_active_rate', 'option_caption' => 'Active率推移グラフ'])
+    </optgroup>
+    <optgroup label="グラフ(計算値：日本)">
+        @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_fatality_rate_moment_japan', 'option_caption' => '致死率(計算日)推移グラフ（日本）'])
+        @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_fatality_rate_estimation_japan', 'option_caption' => '致死率(予測)推移グラフ（日本）'])
+        @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_deaths_estimation_japan', 'option_caption' => '死亡者数(予測)推移グラフ（日本）'])
+        @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_active_rate_japan', 'option_caption' => 'Active率推移グラフ（日本）'])
     </optgroup>
 </select>
