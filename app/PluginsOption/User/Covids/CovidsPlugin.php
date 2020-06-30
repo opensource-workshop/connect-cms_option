@@ -142,6 +142,12 @@ class CovidsPlugin extends UserPluginOptionBase
             $view_type = $request->view_type;
         }
 
+        // 閲覧種類
+        $country = 'Japan';
+        if ($request->filled('target_country')) {
+            $country = $request->target_country;
+        }
+
         // 対象日付
         $target_date = '';
         if (!$covid_report_days->isEmpty()) {
@@ -164,7 +170,19 @@ class CovidsPlugin extends UserPluginOptionBase
         }
 
         // 詳細データ取得
-        if (strpos($view_type, 'graph_') === 0) {
+        if (strpos($view_type, 'graph_country_realdaily') === 0) {
+            // 国ごとの日毎実数グラフ
+            list($covid_daily_reports, $coutries) = $this->getGraphCountryRealDaily($covid, $view_type, $target_date, $last_date, $view_count, $country);
+            $template = 'covids_graph';
+        } elseif (strpos($view_type, 'graph_country_real') === 0) {
+            // 国ごとの累計実数グラフ
+            list($covid_daily_reports, $coutries) = $this->getGraphCountryReal($covid, $view_type, $target_date, $last_date, $view_count, $country);
+            $template = 'covids_graph';
+        } elseif (strpos($view_type, 'graph_country_ratio') === 0) {
+            // 国ごとの比率グラフ
+            list($covid_daily_reports, $coutries) = $this->getGraphCountryRatio($covid, $view_type, $target_date, $last_date, $view_count, $country);
+            $template = 'covids_graph';
+        } elseif (strpos($view_type, 'graph_') === 0) {
             // グラフ
             list($covid_daily_reports, $coutries) = $this->getGraphReports($covid, $view_type, $target_date, $last_date, $view_count);
             $template = 'covids_graph';
@@ -182,11 +200,234 @@ class CovidsPlugin extends UserPluginOptionBase
             'covid_daily_reports' => $covid_daily_reports,
             'covid_report_days'   => $covid_report_days,
             'coutries'            => $coutries,
+            'country'             => $country,
             'view_type'           => $view_type,
             'target_date'         => $target_date,
             'view_count'          => $view_count,
             ]
         );
+    }
+
+    /**
+     *  国ごとの日毎実数のグラフ
+     */
+    private function getGraphCountryRealDaily($covid, $view_type, $target_date, $last_date, $view_count, $country = 'Japan')
+    {
+        return $this->getGraphCountryReal($covid, $view_type, $target_date, $last_date, $view_count, $country, true);
+    }
+
+    /**
+     *  国ごとの累計実数のグラフ
+     */
+    private function getGraphCountryReal($covid, $view_type, $target_date, $last_date, $view_count, $country = 'Japan', $daily_flag = false)
+    {
+        // 日毎の場合は、1日前のデータから取得する。
+        // 取得した配列日付の降順にソート、ループして、前日の数値を引くことで、日毎の数値を計算する。
+        // '2020-04-03' => (180, 270)  前日の数字を引いて、(30, 50)
+        // '2020-04-02' => (150, 220)  前日の数字を引いて、(40, 10)
+        // '2020-04-01' => (110, 210)  前日の数字を引いて、(10, 10)
+        // '2020-03-31' => (100, 200)  前日がないのでそのまま(後で配列から削除する)
+
+        // 日毎
+        if ($daily_flag) {
+            $target_date = date('Y-m-d', strtotime('-1 day', strtotime($target_date)));
+        }
+
+        // 国の一覧取得（最新日付から）
+        $countries = CovidDailyReport::select("country_region")
+                                     ->where('target_date', '=', $last_date)
+                                     ->groupBy("country_region")
+                                     ->orderBy('country_region')
+                                     ->get();
+
+
+        // 感染者推移(日毎の感染者合計)、死亡者推移(日毎の死亡者合計)、回復者推移(日毎の回復者合計)、感染中推移(日毎の感染中合計)、死亡者数(予測)推移(日毎の計算合計)
+        // 対象の国の詳細データ取得
+        $raw_select = "country_region, target_date, ";
+        $raw_select .= "SUM(confirmed) as total_confirmed, SUM(deaths) as total_deaths, SUM(recovered) as total_recovered, SUM(active) as total_active, ";
+        $raw_select .= "TRUNCATE(SUM(confirmed) * SUM(deaths) / NULLIF((SUM(deaths) + SUM(recovered)),0), 0) as total_estimation ";
+
+        $covid_country_query = CovidDailyReport::select(DB::raw($raw_select))
+                                               ->where('country_region', $country)
+                                               ->where('target_date', '>=', $target_date)
+                                               ->groupBy("target_date")
+                                               ->groupBy("country_region")
+                                               ->orderBy('target_date');
+        $covid_daily_reports = $covid_country_query->get();
+
+        // 対象日付が空なら処理しない。
+        if (empty($target_date)) {
+            return array();
+        }
+
+        // 日付クラスに設定して日数計算
+        $target_date_obj = new \DateTime($target_date);
+        $last_date_obj = new \DateTime($last_date);
+        $date_diff = $target_date_obj->diff($last_date_obj);
+
+        // 対象の日付配列生成
+        $target_dates = array();
+
+        // 日付ループ
+        for ($i = 0; $i < $date_diff->days + 1; $i++) {
+            $target_dates[] = date('Y-m-d', strtotime('+' . $i . 'day', strtotime($target_date)));
+        }
+
+        // 最終的に画面で使用する配列を[日付][数値種類]で作成する。
+        // 詳細レコードはSQL で取得した後、日付、数値種類のキーを見てデータにセットする。
+        // それにより、詳細データの日付や国が抜けているレコードがあっても、結果がずれないようにする。
+        $graph_table = array();
+
+        // ヘッダー
+        if ($daily_flag) {
+            $graph_table_head['数値種類'] = array('感染者数', '死亡者数', '回復者数');
+        } else {
+            $graph_table_head['数値種類'] = array('感染者数', '死亡者数', '回復者数', '感染中数', '死亡者数(予測)');
+        }
+
+        // データエリア
+        foreach ($target_dates as $target_date_item) {
+            //foreach ($countries as $country) {
+            //    $graph_table[$target_date_item][$country] = 0;
+            //}
+            $graph_table[$target_date_item]['感染者数'] = 0;
+            $graph_table[$target_date_item]['死亡者数'] = 0;
+            $graph_table[$target_date_item]['回復者数'] = 0;
+            if (!$daily_flag) {
+                $graph_table[$target_date_item]['感染中数'] = 0;
+                $graph_table[$target_date_item]['死亡者数(予測)'] = 0;
+            }
+        }
+
+        // あらかじめ、[日付][数値種類]の配列を作成して、そこに値を入れていくことで、順番が保証される。
+        foreach ($covid_daily_reports as $covid_daily_report) {
+            if ($covid_daily_report->total_confirmed) {
+                $graph_table[$covid_daily_report->target_date]['感染者数'] = $covid_daily_report->total_confirmed;
+            }
+            if ($covid_daily_report->total_deaths) {
+                $graph_table[$covid_daily_report->target_date]['死亡者数'] = $covid_daily_report->total_deaths;
+            }
+            if ($covid_daily_report->total_recovered) {
+                $graph_table[$covid_daily_report->target_date]['回復者数'] = $covid_daily_report->total_recovered;
+            }
+            if (!$daily_flag) {
+                if ($covid_daily_report->total_active) {
+                    $graph_table[$covid_daily_report->target_date]['感染中数'] = $covid_daily_report->total_active;
+                }
+                if ($covid_daily_report->total_estimation) {
+                    $graph_table[$covid_daily_report->target_date]['死亡者数(予測)'] = $covid_daily_report->total_estimation;
+                }
+            }
+        }
+        // Log::debug($graph_table);
+
+        // 日毎の場合
+        if ($daily_flag) {
+            krsort($graph_table);
+            foreach ($graph_table as $row_date => &$graph_row) {
+                $before_date = date('Y-m-d', strtotime('-1 day', strtotime($row_date)));
+                if (array_key_exists($before_date, $graph_table)) {
+                    if (array_key_exists('感染者数', $graph_table[$before_date])) {
+                        $graph_row['感染者数'] = $graph_row['感染者数'] - $graph_table[$before_date]['感染者数'];
+                    }
+                    if (array_key_exists('死亡者数', $graph_table[$before_date])) {
+                        $graph_row['死亡者数'] = $graph_row['死亡者数'] - $graph_table[$before_date]['死亡者数'];
+                    }
+                    if (array_key_exists('回復者数', $graph_table[$before_date])) {
+                        $graph_row['回復者数'] = $graph_row['回復者数'] - $graph_table[$before_date]['回復者数'];
+                    }
+                }
+            }
+            ksort($graph_table);
+            array_shift($graph_table);
+        }
+        // Log::debug($graph_table);
+
+        // ヘッダー行の追加
+        $graph_table = $graph_table_head + $graph_table;
+
+        return array($graph_table, $countries);
+    }
+
+    /**
+     *  国ごとの比率のグラフ
+     */
+    private function getGraphCountryRatio($covid, $view_type, $target_date, $last_date, $view_count, $country = 'Japan')
+    {
+        // 国の一覧取得（最新日付から）
+        $countries = CovidDailyReport::select("country_region")
+                                     ->where('target_date', '=', $last_date)
+                                     ->groupBy("country_region")
+                                     ->orderBy('country_region')
+                                     ->get();
+
+
+        // 致死率(計算日)推移グラフ、致死率(予測)推移グラフ、Active率推移グラフ
+        // 対象の国の詳細データ取得
+        $raw_select = "country_region, target_date, ";
+        $raw_select .= "TRUNCATE(SUM(deaths) / NULLIF(SUM(confirmed),0) * 100 + 0.05, 1) as deaths_ratio_moment, ";
+        $raw_select .= "TRUNCATE(SUM(deaths) / NULLIF((SUM(deaths) + SUM(recovered)),0) * 100 + 0.05, 1) as deaths_ratio_estimation, ";
+        $raw_select .= "TRUNCATE(SUM(active) / NULLIF(SUM(confirmed),0) * 100 + 0.05, 1) as deaths_ratio_active ";
+
+        $covid_country_query = CovidDailyReport::select(DB::raw($raw_select))
+                                               ->where('country_region', $country)
+                                               ->where('target_date', '>=', $target_date)
+                                               ->groupBy("target_date")
+                                               ->groupBy("country_region")
+                                               ->orderBy('target_date');
+        $covid_daily_reports = $covid_country_query->get();
+
+        // 対象日付が空なら処理しない。
+        if (empty($target_date)) {
+            return array();
+        }
+
+        // 日付クラスに設定して日数計算
+        $target_date_obj = new \DateTime($target_date);
+        $last_date_obj = new \DateTime($last_date);
+        $date_diff = $target_date_obj->diff($last_date_obj);
+
+        // 対象の日付配列生成
+        $target_dates = array();
+
+        // 日付ループ
+        for ($i = 0; $i < $date_diff->days + 1; $i++) {
+            $target_dates[] = date('Y-m-d', strtotime('+' . $i . 'day', strtotime($target_date)));
+        }
+
+        // 最終的に画面で使用する配列を[日付][数値種類]で作成する。
+        // 詳細レコードはSQL で取得した後、日付、数値種類のキーを見てデータにセットする。
+        // それにより、詳細データの日付や国が抜けているレコードがあっても、結果がずれないようにする。
+        $graph_table = array();
+
+        // ヘッダー
+        $graph_table['数値種類'] = array('致死率(計算日)', '致死率(予測)', 'Active率');
+
+        // データエリア
+        foreach ($target_dates as $target_date_item) {
+            //foreach ($countries as $country) {
+            //    $graph_table[$target_date_item][$country] = 0;
+            //}
+            $graph_table[$target_date_item]['致死率(計算日)'] = 0;
+            $graph_table[$target_date_item]['致死率(予測)'] = 0;
+            $graph_table[$target_date_item]['Active率'] = 0;
+        }
+
+        // あらかじめ、[日付][数値種類]の配列を作成して、そこに値を入れていくことで、順番が保証される。
+        foreach ($covid_daily_reports as $covid_daily_report) {
+            if ($covid_daily_report->deaths_ratio_moment) {
+                $graph_table[$covid_daily_report->target_date]['致死率(計算日)'] = $covid_daily_report->deaths_ratio_moment;
+            }
+            if ($covid_daily_report->deaths_ratio_estimation) {
+                $graph_table[$covid_daily_report->target_date]['致死率(予測)'] = $covid_daily_report->deaths_ratio_estimation;
+            }
+            if ($covid_daily_report->deaths_ratio_active) {
+                $graph_table[$covid_daily_report->target_date]['Active率'] = $covid_daily_report->deaths_ratio_active;
+            }
+        }
+        // Log::debug($graph_table);
+
+        return array($graph_table, $countries);
     }
 
     /**
