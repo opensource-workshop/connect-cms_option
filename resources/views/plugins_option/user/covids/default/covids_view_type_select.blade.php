@@ -41,7 +41,8 @@
         @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_active_rate_japan', 'option_caption' => 'Active率推移グラフ（日本）'])
     </optgroup>
     <optgroup label="グラフ(計算値：国ごと)">
-        @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_country_real', 'option_caption' => '国ごとの実数'])
+        @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_country_real', 'option_caption' => '国ごとの累計実数'])
+        @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_country_realdaily', 'option_caption' => '国ごとの日毎実数'])
         @include($option_blade_path, ['select_value' => $view_type, 'option_value' => 'graph_country_ratio', 'option_caption' => '国ごとの比率'])
     </optgroup>
 </select>

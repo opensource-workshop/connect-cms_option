@@ -45,7 +45,7 @@
                 @endforeach
             </select>
         </div>
-        @if ($view_type == 'graph_country_real' || $view_type == 'graph_country_ratio')
+        @if ($view_type == 'graph_country_real' || $view_type == 'graph_country_realdaily' || $view_type == 'graph_country_ratio')
             <div class="col-sm-{{$col_num}}">
                 <select class="form-control" name="target_country" onchange="javascript:submit(this.form);">
                     <option value="">国および地域</option>
@@ -97,31 +97,33 @@
         var options = {
             @if ($view_type == '' || $view_type == 'graph_confirmed')
                 title: '感染者推移グラフ',
-            @elseif ($view_type == '' || $view_type == 'graph_deaths')
+            @elseif ($view_type == 'graph_deaths')
                 title: '死亡者推移グラフ',
-            @elseif ($view_type == '' || $view_type == 'graph_recovered')
+            @elseif ($view_type == 'graph_recovered')
                 title: '回復者推移グラフ',
-            @elseif ($view_type == '' || $view_type == 'graph_active')
+            @elseif ($view_type == 'graph_active')
                 title: '感染中推移グラフ',
-            @elseif ($view_type == '' || $view_type == 'graph_fatality_rate_moment')
+            @elseif ($view_type == 'graph_fatality_rate_moment')
                 title: '致死率(計算日)推移グラフ',
-            @elseif ($view_type == '' || $view_type == 'graph_fatality_rate_estimation')
+            @elseif ($view_type == 'graph_fatality_rate_estimation')
                 title: '致死率(予測)推移グラフ',
-            @elseif ($view_type == '' || $view_type == 'graph_deaths_estimation')
+            @elseif ($view_type == 'graph_deaths_estimation')
                 title: '死亡者数(予測)推移グラフ',
-            @elseif ($view_type == '' || $view_type == 'graph_active_rate')
+            @elseif ($view_type == 'graph_active_rate')
                 title: 'Active率推移グラフ',
-            @elseif ($view_type == '' || $view_type == 'graph_fatality_rate_moment_japan')
+            @elseif ($view_type == 'graph_fatality_rate_moment_japan')
                 title: '致死率(計算日)推移グラフ（日本）',
-            @elseif ($view_type == '' || $view_type == 'graph_fatality_rate_estimation_japan')
+            @elseif ($view_type == 'graph_fatality_rate_estimation_japan')
                 title: '致死率(予測)推移グラフ（日本）',
-            @elseif ($view_type == '' || $view_type == 'graph_deaths_estimation_japan')
+            @elseif ($view_type == 'graph_deaths_estimation_japan')
                 title: '死亡者数(予測)推移グラフ（日本）',
-            @elseif ($view_type == '' || $view_type == 'graph_active_rate_japan')
+            @elseif ($view_type == 'graph_active_rate_japan')
                 title: 'Active率推移グラフ（日本）',
-            @elseif ($view_type == '' || $view_type == 'graph_country_real')
-                title: '国ごとの実数（{{$country}}）',
-            @elseif ($view_type == '' || $view_type == 'graph_country_ratio')
+            @elseif ($view_type == 'graph_country_realdaily')
+                title: '国ごとの日毎実数（{{$country}}）',
+            @elseif ($view_type == 'graph_country_real')
+                title: '国ごとの累積実数（{{$country}}）',
+            @elseif ($view_type == 'graph_country_ratio')
                 title: '国ごとの比率（{{$country}}）',
             @endif
             chartArea: {left: 100, width:'70%'}
