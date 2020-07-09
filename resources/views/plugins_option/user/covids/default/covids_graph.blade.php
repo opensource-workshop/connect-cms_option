@@ -21,8 +21,8 @@
 
 @php
    $col_num = 4;
-   if ($view_type == 'graph_country_real') {
-       $col_num = 4;
+   if ($view_type == 'graph_country_real' || $view_type == 'graph_country_realdaily' || $view_type == 'graph_country_ratio') {
+       $col_num = 3;
    }
 @endphp
 
@@ -47,7 +47,7 @@
         </div>
         @if ($view_type == 'graph_country_real' || $view_type == 'graph_country_realdaily' || $view_type == 'graph_country_ratio')
             <div class="col-sm-{{$col_num}}">
-                <select class="form-control" name="target_country" onchange="javascript:submit(this.form);">
+                <select class="form-control" name="target_country" onchange="javascript:target_province_state.value = ''; submit(this.form);">
                     <option value="">国および地域</option>
                     @foreach ($coutries as $coutry)
                         @if ($coutry->country_region == $country)
@@ -64,6 +64,23 @@
                 @include('plugins_option.user.covids.default.covids_view_count')
             </div>
         @endif
+        @if ($view_type == 'graph_country_real' || $view_type == 'graph_country_realdaily' || $view_type == 'graph_country_ratio')
+            <div class="col-sm-{{$col_num}}">
+                <select class="form-control" name="target_province_state" onchange="javascript:submit(this.form);">
+                    <option value="">県・州</option>
+                    @isset($province_states)
+                    @foreach ($province_states as $province_state)
+                        @if ($province_state->province_state == $target_province_state)
+                            <option value="{{$province_state->province_state}}" selected class="text-white bg-primary">{{$province_state->province_state}}</option>
+                        @else
+                            <option value="{{$province_state->province_state}}">{{$province_state->province_state}}</option>
+                        @endif
+                    @endforeach
+                    @endisset
+                </select>
+            </div>
+        @endif
+
     </div>
 </form>
 

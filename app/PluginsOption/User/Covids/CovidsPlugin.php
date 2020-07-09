@@ -70,26 +70,31 @@ class CovidsPlugin extends UserPluginOptionBase
      * CSV とテーブルの項目合わせ
      */
     private $column_names = [
-                'FIPS'                => 'fips',
-                'Admin2'              => 'admin2',
-                'Province/State'      => 'province_state',
-                'Province_State'      => 'province_state',
-                'Country/Region'      => 'country_region',
-                'Country_Region'      => 'country_region',
-                'Last Update'         => 'last_update',
-                'Last_Update'         => 'last_update',
-                'Latitude'            => 'lat',            // 03-01-2020 から
-                'Lat'                 => 'lat',
-                'Longitude'           => 'long_',          // 03-01-2020 から
-                'Long_'               => 'long_',
-                'Confirmed'           => 'confirmed',
-                'Deaths'              => 'deaths',
-                'Recovered'           => 'recovered',
-                'Active'              => 'active',
-                'Combined_Key'        => 'combined_key',
-                'Incidence_Rate'      => 'combined_key',
-                'Case-Fatality_Ratio' => 'case_fatality_ratio',
-            ];
+        'FIPS'                => 'fips',
+        'Admin2'              => 'admin2',
+        'Province/State'      => 'province_state',
+        'Province_State'      => 'province_state',
+        'Country/Region'      => 'country_region',
+        'Country_Region'      => 'country_region',
+        'Last Update'         => 'last_update',
+        'Last_Update'         => 'last_update',
+        'Latitude'            => 'lat',            // 03-01-2020 から
+        'Lat'                 => 'lat',
+        'Longitude'           => 'long_',          // 03-01-2020 から
+        'Long_'               => 'long_',
+        'Confirmed'           => 'confirmed',
+        'Deaths'              => 'deaths',
+        'Recovered'           => 'recovered',
+        'Active'              => 'active',
+        'Combined_Key'        => 'combined_key',
+        'Incidence_Rate'      => 'combined_key',
+        'Case-Fatality_Ratio' => 'case_fatality_ratio',
+    ];
+
+    /**
+     * テーブル項目の数値型の設定（初期値の設定など）
+     */
+    private $num_columns = ['confirmed', 'deaths', 'recovered', 'active'];
 
     /**
      * POSTデータ
@@ -142,10 +147,16 @@ class CovidsPlugin extends UserPluginOptionBase
             $view_type = $request->view_type;
         }
 
-        // 閲覧種類
+        // 対象国
         $country = 'Japan';
         if ($request->filled('target_country')) {
             $country = $request->target_country;
+        }
+
+        // 対象県
+        $target_province_state = '';
+        if ($request->filled('target_province_state')) {
+            $target_province_state = $request->target_province_state;
         }
 
         // 対象日付
@@ -170,17 +181,18 @@ class CovidsPlugin extends UserPluginOptionBase
         }
 
         // 詳細データ取得
+        $province_states = null;
         if (strpos($view_type, 'graph_country_realdaily') === 0) {
             // 国ごとの日毎実数グラフ
-            list($covid_daily_reports, $coutries) = $this->getGraphCountryRealDaily($covid, $view_type, $target_date, $last_date, $view_count, $country);
+            list($covid_daily_reports, $coutries, $province_states) = $this->getGraphCountryRealDaily($covid, $view_type, $target_date, $last_date, $view_count, $country, $target_province_state);
             $template = 'covids_graph';
         } elseif (strpos($view_type, 'graph_country_real') === 0) {
             // 国ごとの累計実数グラフ
-            list($covid_daily_reports, $coutries) = $this->getGraphCountryReal($covid, $view_type, $target_date, $last_date, $view_count, $country);
+            list($covid_daily_reports, $coutries, $province_states) = $this->getGraphCountryReal($covid, $view_type, $target_date, $last_date, $view_count, $country, $target_province_state);
             $template = 'covids_graph';
         } elseif (strpos($view_type, 'graph_country_ratio') === 0) {
             // 国ごとの比率グラフ
-            list($covid_daily_reports, $coutries) = $this->getGraphCountryRatio($covid, $view_type, $target_date, $last_date, $view_count, $country);
+            list($covid_daily_reports, $coutries, $province_states) = $this->getGraphCountryRatio($covid, $view_type, $target_date, $last_date, $view_count, $country, $target_province_state);
             $template = 'covids_graph';
         } elseif (strpos($view_type, 'graph_') === 0) {
             // グラフ
@@ -201,8 +213,10 @@ class CovidsPlugin extends UserPluginOptionBase
             'covid_report_days'   => $covid_report_days,
             'coutries'            => $coutries,
             'country'             => $country,
+            'province_states'     => $province_states,
             'view_type'           => $view_type,
             'target_date'         => $target_date,
+            'target_province_state' => $target_province_state,
             'view_count'          => $view_count,
             ]
         );
@@ -211,15 +225,15 @@ class CovidsPlugin extends UserPluginOptionBase
     /**
      *  国ごとの日毎実数のグラフ
      */
-    private function getGraphCountryRealDaily($covid, $view_type, $target_date, $last_date, $view_count, $country = 'Japan')
+    private function getGraphCountryRealDaily($covid, $view_type, $target_date, $last_date, $view_count, $country = 'Japan', $target_province_state = '')
     {
-        return $this->getGraphCountryReal($covid, $view_type, $target_date, $last_date, $view_count, $country, true);
+        return $this->getGraphCountryReal($covid, $view_type, $target_date, $last_date, $view_count, $country, $target_province_state, true);
     }
 
     /**
      *  国ごとの累計実数のグラフ
      */
-    private function getGraphCountryReal($covid, $view_type, $target_date, $last_date, $view_count, $country = 'Japan', $daily_flag = false)
+    private function getGraphCountryReal($covid, $view_type, $target_date, $last_date, $view_count, $country = 'Japan', $target_province_state = '', $daily_flag = false)
     {
         // 日毎の場合は、1日前のデータから取得する。
         // 取得した配列日付の降順にソート、ループして、前日の数値を引くことで、日毎の数値を計算する。
@@ -240,6 +254,13 @@ class CovidsPlugin extends UserPluginOptionBase
                                      ->orderBy('country_region')
                                      ->get();
 
+        // 県の一覧取得（最新日付から）
+        $province_states = CovidDailyReport::select("province_state")
+                                     ->where('country_region', '=', $country)
+                                     ->where('target_date', '=', $last_date)
+                                     ->groupBy("province_state")
+                                     ->orderBy('province_state')
+                                     ->get();
 
         // 感染者推移(日毎の感染者合計)、死亡者推移(日毎の死亡者合計)、回復者推移(日毎の回復者合計)、感染中推移(日毎の感染中合計)、死亡者数(予測)推移(日毎の計算合計)
         // 対象の国の詳細データ取得
@@ -248,11 +269,15 @@ class CovidsPlugin extends UserPluginOptionBase
         $raw_select .= "TRUNCATE(SUM(confirmed) * SUM(deaths) / NULLIF((SUM(deaths) + SUM(recovered)),0), 0) as total_estimation ";
 
         $covid_country_query = CovidDailyReport::select(DB::raw($raw_select))
-                                               ->where('country_region', $country)
-                                               ->where('target_date', '>=', $target_date)
-                                               ->groupBy("target_date")
-                                               ->groupBy("country_region")
-                                               ->orderBy('target_date');
+                                               ->where('country_region', $country);
+        if (!empty($target_province_state)) {
+            $covid_country_query->where('province_state', $target_province_state);
+        }
+
+        $covid_country_query->where('target_date', '>=', $target_date)
+                            ->groupBy("target_date")
+                            ->groupBy("country_region")
+                            ->orderBy('target_date');
         $covid_daily_reports = $covid_country_query->get();
 
         // 対象日付が空なら処理しない。
@@ -346,13 +371,13 @@ class CovidsPlugin extends UserPluginOptionBase
         // ヘッダー行の追加
         $graph_table = $graph_table_head + $graph_table;
 
-        return array($graph_table, $countries);
+        return array($graph_table, $countries, $province_states);
     }
 
     /**
      *  国ごとの比率のグラフ
      */
-    private function getGraphCountryRatio($covid, $view_type, $target_date, $last_date, $view_count, $country = 'Japan')
+    private function getGraphCountryRatio($covid, $view_type, $target_date, $last_date, $view_count, $country = 'Japan', $target_province_state = '')
     {
         // 国の一覧取得（最新日付から）
         $countries = CovidDailyReport::select("country_region")
@@ -360,6 +385,14 @@ class CovidsPlugin extends UserPluginOptionBase
                                      ->groupBy("country_region")
                                      ->orderBy('country_region')
                                      ->get();
+
+        // 県
+        $province_states = CovidDailyReport::select("province_state")
+                                           ->where('country_region', '=', $country)
+                                           ->where('target_date', '=', $last_date)
+                                           ->groupBy("province_state")
+                                           ->orderBy('province_state')
+                                           ->get();
 
 
         // 致死率(計算日)推移グラフ、致死率(予測)推移グラフ、Active率推移グラフ
@@ -370,11 +403,16 @@ class CovidsPlugin extends UserPluginOptionBase
         $raw_select .= "TRUNCATE(SUM(active) / NULLIF(SUM(confirmed),0) * 100 + 0.05, 1) as deaths_ratio_active ";
 
         $covid_country_query = CovidDailyReport::select(DB::raw($raw_select))
-                                               ->where('country_region', $country)
-                                               ->where('target_date', '>=', $target_date)
-                                               ->groupBy("target_date")
-                                               ->groupBy("country_region")
-                                               ->orderBy('target_date');
+                                               ->where('country_region', $country);
+
+        if (!empty($target_province_state)) {
+            $covid_country_query->where('province_state', $target_province_state);
+        }
+
+        $covid_country_query->where('target_date', '>=', $target_date)
+                            ->groupBy("target_date")
+                            ->groupBy("country_region")
+                            ->orderBy('target_date');
         $covid_daily_reports = $covid_country_query->get();
 
         // 対象日付が空なら処理しない。
@@ -427,7 +465,7 @@ class CovidsPlugin extends UserPluginOptionBase
         }
         // Log::debug($graph_table);
 
-        return array($graph_table, $countries);
+        return array($graph_table, $countries, $province_states);
     }
 
     /**
@@ -900,6 +938,9 @@ class CovidsPlugin extends UserPluginOptionBase
     */
     public function pullDateData($request, $page_id, $frame_id, $target_date)
     {
+
+        set_time_limit(3600);
+
         // フレームに紐づくcovid データの取得
         $covid = $this->getCovidFrame($frame_id);
 
@@ -955,7 +996,15 @@ class CovidsPlugin extends UserPluginOptionBase
             $csv_body_cols = str_getcsv($csv_line);
             $index = 0;
             foreach ($csv_body_cols as $col_index => $csv_body_col) {
-                $covid_daily_report->setAttribute($csv_header[$col_index], empty($csv_body_col) ? null : $csv_body_col);
+                $value = null;
+                if (empty($csv_body_col)) {
+                    if (in_array($csv_header[$col_index], $this->num_columns)) {
+                        $value = 0;
+                    }
+                } else {
+                    $value = $csv_body_col;
+                }
+                $covid_daily_report->setAttribute($csv_header[$col_index], $value);
 
                 $index++;
             }
