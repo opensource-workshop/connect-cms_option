@@ -87,7 +87,8 @@ class CovidsPlugin extends UserPluginOptionBase
         'Recovered'           => 'recovered',
         'Active'              => 'active',
         'Combined_Key'        => 'combined_key',
-        'Incidence_Rate'      => 'combined_key',
+        'Incidence_Rate'      => 'incidence_rate',
+        'Incident_Rate'       => 'incidence_rate',
         'Case-Fatality_Ratio' => 'case_fatality_ratio',
     ];
 
