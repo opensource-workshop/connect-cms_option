@@ -354,13 +354,16 @@ class CovidsPlugin extends UserPluginOptionBase
                 $before_date = date('Y-m-d', strtotime('-1 day', strtotime($row_date)));
                 if (array_key_exists($before_date, $graph_table)) {
                     if (array_key_exists('感染者数', $graph_table[$before_date])) {
-                        $graph_row['感染者数'] = $graph_row['感染者数'] - $graph_table[$before_date]['感染者数'];
+                        $calc_tmp = $graph_row['感染者数'] - $graph_table[$before_date]['感染者数'];
+                        $graph_row['感染者数'] = $calc_tmp > 0 ? $calc_tmp : 0;
                     }
                     if (array_key_exists('死亡者数', $graph_table[$before_date])) {
-                        $graph_row['死亡者数'] = $graph_row['死亡者数'] - $graph_table[$before_date]['死亡者数'];
+                        $calc_tmp = $graph_row['死亡者数'] - $graph_table[$before_date]['死亡者数'];
+                        $graph_row['死亡者数'] = $calc_tmp > 0 ? $calc_tmp : 0;
                     }
                     if (array_key_exists('回復者数', $graph_table[$before_date])) {
-                        $graph_row['回復者数'] = $graph_row['回復者数'] - $graph_table[$before_date]['回復者数'];
+                        $calc_tmp = $graph_row['回復者数'] - $graph_table[$before_date]['回復者数'];
+                        $graph_row['回復者数'] = $calc_tmp > 0 ? $calc_tmp : 0;
                     }
                 }
             }
