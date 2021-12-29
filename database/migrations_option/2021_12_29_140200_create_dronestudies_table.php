@@ -16,7 +16,7 @@ class CreateDronestudiesTable extends Migration
         Schema::create('dronestudies', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('bucket_id');
-            $table->string('title', 255)->comment('タイトル');
+            $table->string('name', 255)->comment('DroneStudy名');
             $table->integer('created_id')->nullable();
             $table->string('created_name', 255)->nullable();
             $table->timestamp('created_at')->nullable();

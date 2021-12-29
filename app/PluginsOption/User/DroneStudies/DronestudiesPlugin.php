@@ -2,14 +2,14 @@
 
 namespace App\PluginsOption\User\DroneStudies;
 
-//use Illuminate\Support\Collection;
+use Illuminate\Support\Collection;
 //use Illuminate\Support\Facades\Auth;
 //use Illuminate\Support\Facades\Storage;
-//use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Validator;
 //use Illuminate\Validation\Rule;
 
-//use App\Models\Common\Buckets;
-//use App\Models\Common\Frame;
+use App\Models\Common\Buckets;
+use App\Models\Common\Frame;
 //use App\Models\Common\Page;
 //use App\Models\Common\PageRole;
 //use App\Models\Common\Uploads;
@@ -28,6 +28,9 @@ use App\PluginsOption\User\UserPluginOptionBase;
 /**
  * DroneStudy・プラグイン
  *
+ *  php artisan migrate --path=database/migrations_option
+ *  php artisan migrate:rollback --path=database/migrations_option
+ *
  * @author 永原　篤 <nagahara@opensource-workshop.jp>
  * @copyright OpenSource-WorkShop Co.,Ltd. All Rights Reserved
  * @category DroneStudy・プラグイン
@@ -35,7 +38,6 @@ use App\PluginsOption\User\UserPluginOptionBase;
  */
 class DronestudiesPlugin extends UserPluginOptionBase
 {
-
     /* オブジェクト変数 */
 
     /* コアから呼び出す関数 */
@@ -97,7 +99,7 @@ class DronestudiesPlugin extends UserPluginOptionBase
         }
 
         // バケツデータ取得
-        $drone_study = $this->getPluginBucket($this->bucket->id);
+        $drone_study = $this->getPluginBucket($this->buckets->id);
 
         // 表示テンプレートを呼び出す。
         return $this->view('index', [
@@ -142,6 +144,28 @@ class DronestudiesPlugin extends UserPluginOptionBase
             // 表示中のバケツデータ
             'dronestudy' => $this->getPluginBucket($bucket_id),
         ]);
+    }
+
+    /**
+     * DroneStudy登録/更新のバリデーターを取得する。
+     *
+     * @param \Illuminate\Http\Request $request リクエスト
+     * @return \Illuminate\Contracts\Validation\Validator バリデーター
+     */
+    private function getBucketValidator($request)
+    {
+        // 項目のエラーチェック
+        $validator = Validator::make($request->all(), [
+            'name' => [
+                'required',
+                'max:255'
+            ],
+        ]);
+        $validator->setAttributeNames([
+            'name' => 'DroneStudy名',
+        ]);
+
+        return $validator;
     }
 
     /**
