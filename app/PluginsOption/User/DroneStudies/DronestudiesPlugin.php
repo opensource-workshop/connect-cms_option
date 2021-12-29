@@ -15,7 +15,7 @@ use App\Models\Common\Frame;
 //use App\Models\Common\Uploads;
 //use App\Models\Core\FrameConfig;
 use App\ModelsOption\User\Dronestudies\Dronestudy;
-//use App\Models\User\Cabinets\CabinetContent;
+use App\ModelsOption\User\Dronestudies\DronestudyContent;
 
 //use App\Enums\UploadMaxSize;
 //use App\Enums\CabinetFrameConfig;
@@ -99,11 +99,16 @@ class DronestudiesPlugin extends UserPluginOptionBase
         }
 
         // バケツデータ取得
-        $drone_study = $this->getPluginBucket($this->buckets->id);
+        $dronestudy = $this->getPluginBucket($this->buckets->id);
+
+        // 編集対象のプログラム
+        $dronestudy_content = new DronestudyContent();
 
         // 表示テンプレートを呼び出す。
         return $this->view('index', [
-            'drone_study' => $drone_study,
+            'dronestudy' => $dronestudy,
+            'dronestudy_content' => $dronestudy_content,
+            'dronestudy_contents' => DronestudyContent::get(),
         ]);
     }
 
