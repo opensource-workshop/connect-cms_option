@@ -12,5 +12,5 @@ class DronestudyContent extends Model
     use UserableNohistory;
 
     // 更新する項目の定義
-    protected $fillable = ['bucket_id', 'title'];
+    protected $fillable = ['dronestudy_id', 'title', 'xml_text'];
 }

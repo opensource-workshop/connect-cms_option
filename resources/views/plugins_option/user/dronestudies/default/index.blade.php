@@ -9,9 +9,17 @@
 
 @section("plugin_contents_$frame->id")
 
-    <form action="{{url('/')}}/plugin/dronestudies/savexml/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}" method="POST" name="form_dronestudies" class="">
+<script type="text/javascript">
+    {{-- JavaScript --}}
+    function save_xml() {
+        form_dronestudy.submit();
+    }
+</script>
+
+    <form action="{{url('/')}}/redirect/plugin/dronestudies/save/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}" method="POST" name="form_dronestudy" class="">
         {{csrf_field()}}
         <input type="hidden" name="dronestudy_id" value="{{$dronestudy->id}}">
+        <input type="hidden" name="content_id" value="{{$dronestudy_content->id}}">
 
         <div class="form-group">
             <label class="control-label">タイトル</label><br />
@@ -20,7 +28,7 @@
 
         <div class="form-group">
             <label class="control-label">コード <label class="badge badge-danger">必須</label></label><br />
-            <textarea id="txt-editor" class="form-control" rows="10" name="code_text" style="font-family:'ＭＳ ゴシック', 'MS Gothic', 'Osaka－等幅', Osaka-mono, monospace;">{!!old('xml_text', $dronestudy_content->xml_text)!!}</textarea>
+            <textarea id="txt-editor" class="form-control" rows="10" name="xml_text" style="font-family:'ＭＳ ゴシック', 'MS Gothic', 'Osaka－等幅', Osaka-mono, monospace;">{!!old('xml_text', $dronestudy_content->xml_text)!!}</textarea>
             @if ($errors && $errors->has('xml_text')) <div class="text-danger">{{$errors->first('xml_text')}}</div> @endif
         </div>
 
@@ -29,8 +37,8 @@
                 <div class="col-sm-2"></div>
                 <div class="col-sm-8 mx-auto">
                     <div class="text-center">
-                        <button type="submit" class="btn btn-success mr-3"><i class="far fa-save"></i> 保存のみ</button>
-                        <button type="button" class="btn btn-primary mr-3" onclick="javascript:submit_codestudies_run();"><i class="fas fa-check"></i> 保存と実行</button>
+                        <button type="button" class="btn btn-success mr-3" onclick="javascript:save_xml();"><i class="far fa-save"></i> 保存</button>
+                        <button type="button" class="btn btn-primary mr-3" onclick="javascript:drone_run();"><i class="fas fa-check"></i> 実行</button>
                         <button type="button" class="btn btn-secondary" onclick="location.href='{{URL::to($page->permanent_link)}}#frame-{{$frame->id}}'"><i class="fas fa-times"></i> キャンセル</button>
                     </div>
                 </div>

@@ -61,7 +61,6 @@ class DronestudiesPlugin extends UserPluginOptionBase
     {
         // 権限チェックテーブル
         $role_check_table = array();
-        //$role_check_table["upload"] = array('posts.create');
         return $role_check_table;
     }
 
@@ -90,7 +89,7 @@ class DronestudiesPlugin extends UserPluginOptionBase
      *  データ初期表示関数
      *  コアがページ表示の際に呼び出す関数
      */
-    public function index($request, $page_id, $frame_id)
+    public function index($request, $page_id, $frame_id, $content_id = null)
     {
         // バケツ未設定の場合はバケツ空テンプレートを呼び出す
         if (!isset($this->frame) || !$this->frame->bucket_id) {
@@ -102,7 +101,7 @@ class DronestudiesPlugin extends UserPluginOptionBase
         $dronestudy = $this->getPluginBucket($this->buckets->id);
 
         // 編集対象のプログラム
-        $dronestudy_content = new DronestudyContent();
+        $dronestudy_content = DronestudyContent::firstOrNew(['id' => $content_id]);
 
         // 表示テンプレートを呼び出す。
         return $this->view('index', [
@@ -216,6 +215,30 @@ class DronestudiesPlugin extends UserPluginOptionBase
         $dronestudy->save();
 
         return $bucket->id;
+    }
+
+    /**
+     * DroneStudy コンテンツを登録する。
+     *
+     * @param \Illuminate\Http\Request $request リクエスト
+     * @param int $frame_id フレームID
+     * @param int $bucket_id バケツID
+     * @return int バケツID
+     */
+    public function save($request, $page_id, $frame_id)
+    {
+        // ブロックのXML をそのまま保存する。
+        $dronestudy = $this->getPluginBucket($this->buckets->id);
+        $content = DronestudyContent::updateOrCreate(
+            ['id' => $request->content_id],
+            [
+                'dronestudy_id' => $dronestudy->id,
+                'title' => $request->title,
+                'xml_text' => $request->xml_text,
+            ],
+        );
+        // 登録後はリダイレクトして編集ページを開く。
+        return new Collection(['redirect_path' => url('/') . "/plugin/dronestudies/index/" . $page_id . "/" . $frame_id . "/" . $content->id . "#frame-" . $frame_id]);
     }
 
     /**
