@@ -1,6 +1,6 @@
 <?php
 
-namespace App\PluginsOption\User\DroneStudies;
+namespace App\PluginsOption\User\Dronestudies;
 
 class Tello
 {

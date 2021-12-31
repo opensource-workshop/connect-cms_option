@@ -1,6 +1,6 @@
 <?php
 
-namespace App\PluginsOption\User\DroneStudies;
+namespace App\PluginsOption\User\Dronestudies;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +21,7 @@ use App\ModelsOption\User\Dronestudies\DronestudyPost;
 //use App\Enums\CabinetFrameConfig;
 //use App\Enums\CabinetSort;
 
-use App\PluginsOption\User\DroneStudies\Tello;
+use App\PluginsOption\User\Dronestudies\Tello;
 
 use App\PluginsOption\User\UserPluginOptionBase;
 
@@ -172,14 +172,17 @@ class DronestudiesPlugin extends UserPluginOptionBase
     private function apiGetUsers($dronestudy)
     {
         // リモートのURL 組み立て
-        $request_url = $dronestudy->remote_url . "/getUsers?secret_code=" . $dronestudy->secret_code;
+        $request_url = $dronestudy->remote_url . "/api/dronestudy/getUsers?secret_code=" . $dronestudy->secret_code;
 
         // API 呼び出し
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $request_url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $return_json = curl_exec($ch);
-        //\Log::debug(json_decode($return_json, JSON_UNESCAPED_UNICODE));
+        \Log::debug($request_url);
+        \Log::debug(json_decode($return_json, JSON_UNESCAPED_UNICODE));
+
+\Log::debug(curl_error($ch));
 
         // JSON データを複合化
 //        $check_result = json_decode($return_json, true);
