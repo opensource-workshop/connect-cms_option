@@ -3,7 +3,7 @@
 namespace App\PluginsOption\User\DroneStudies;
 
 use Illuminate\Support\Collection;
-//use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Auth;
 //use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 //use Illuminate\Validation\Rule;
@@ -13,13 +13,15 @@ use App\Models\Common\Frame;
 //use App\Models\Common\Page;
 //use App\Models\Common\PageRole;
 //use App\Models\Common\Uploads;
-//use App\Models\Core\FrameConfig;
+use App\Models\Core\FrameConfig;
 use App\ModelsOption\User\Dronestudies\Dronestudy;
-use App\ModelsOption\User\Dronestudies\DronestudyContent;
+use App\ModelsOption\User\Dronestudies\DronestudyPost;
 
 //use App\Enums\UploadMaxSize;
 //use App\Enums\CabinetFrameConfig;
 //use App\Enums\CabinetSort;
+
+use App\PluginsOption\User\DroneStudies\Tello;
 
 use App\PluginsOption\User\UserPluginOptionBase;
 
@@ -40,6 +42,11 @@ class DronestudiesPlugin extends UserPluginOptionBase
 {
     /* オブジェクト変数 */
 
+    /**
+     * 変更時のPOSTデータ
+     */
+    public $post = null;
+
     /* コアから呼び出す関数 */
 
     /**
@@ -49,7 +56,7 @@ class DronestudiesPlugin extends UserPluginOptionBase
     {
         // 標準関数以外で画面などから呼ばれる関数の定義
         $functions = array();
-        $functions['get']  = ['index'];
+        $functions['get']  = ['index', 'remote', 'run'];
         $functions['post'] = [];
         return $functions;
     }
@@ -61,6 +68,7 @@ class DronestudiesPlugin extends UserPluginOptionBase
     {
         // 権限チェックテーブル
         $role_check_table = array();
+        $role_check_table['remote'] = array('role_article');
         return $role_check_table;
     }
 
@@ -83,13 +91,51 @@ class DronestudiesPlugin extends UserPluginOptionBase
         return Dronestudy::firstOrNew(['bucket_id' => $bucket_id]);
     }
 
+    /**
+     * データ取得時の権限条件の付与
+     */
+    protected function appendAuthWhere($query, $table_name)
+    {
+        return $this->appendAuthWhereBase($query, $table_name);
+    }
+
+    /**
+     * POST取得関数（コアから呼び出す）
+     * コアがPOSTチェックの際に呼び出す関数
+     */
+    public function getPost($id, $action = null)
+    {
+        if (is_null($action)) {
+            // プラグイン内からの呼び出しを想定。処理を通す。
+        } elseif (in_array($action, ['index', 'save', 'delete'])) {
+            // コアから呼び出し。posts.update|posts.deleteの権限チェックを指定したアクションは、処理を通す。
+        } else {
+            // それ以外のアクションは null で返す。
+            return null;
+        }
+
+        // 一度読んでいれば、そのPOSTを再利用する。
+        if (!empty($this->post)) {
+            return $this->post;
+        }
+
+        // 権限によって表示する記事を絞る
+        $this->post = DronestudyPost::
+            where(function ($query) {
+                $query = $this->appendAuthWhere($query, 'dronestudy_posts');
+            })
+            ->firstOrNew(['id' => $id]);
+
+        return $this->post;
+    }
+
     /* 画面アクション関数 */
 
     /**
      *  データ初期表示関数
      *  コアがページ表示の際に呼び出す関数
      */
-    public function index($request, $page_id, $frame_id, $content_id = null)
+    public function index($request, $page_id, $frame_id, $post_id = null)
     {
         // バケツ未設定の場合はバケツ空テンプレートを呼び出す
         if (!isset($this->frame) || !$this->frame->bucket_id) {
@@ -100,15 +146,86 @@ class DronestudiesPlugin extends UserPluginOptionBase
         // バケツデータ取得
         $dronestudy = $this->getPluginBucket($this->buckets->id);
 
-        // 編集対象のプログラム
-        $dronestudy_content = DronestudyContent::firstOrNew(['id' => $content_id]);
+        // ログインチェック
+        if (Auth::check()) {
+            // 編集対象のプログラム
+            $dronestudy_post = $this->getPost($post_id);
+
+            // ユーザのプログラム一覧
+            $dronestudy_posts = DronestudyPost::where('created_id', Auth::user()->id)->get();
+        } else {
+            $dronestudy_post = new DronestudyPost();
+            $dronestudy_posts = new Collection();
+        }
 
         // 表示テンプレートを呼び出す。
         return $this->view('index', [
             'dronestudy' => $dronestudy,
-            'dronestudy_content' => $dronestudy_content,
-            'dronestudy_contents' => DronestudyContent::get(),
+            'dronestudy_post' => $dronestudy_post,
+            'dronestudy_posts' => $dronestudy_posts,
         ]);
+    }
+
+    /**
+     *  ユーザ取得
+     */
+    private function apiGetUsers($dronestudy)
+    {
+        // リモートのURL 組み立て
+        $request_url = $dronestudy->remote_url . "/getUsers?secret_code=" . $dronestudy->secret_code;
+
+        // API 呼び出し
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $request_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $return_json = curl_exec($ch);
+        //\Log::debug(json_decode($return_json, JSON_UNESCAPED_UNICODE));
+
+        // JSON データを複合化
+//        $check_result = json_decode($return_json, true);
+        //Log::debug(print_r($check_result, true));
+
+        // 権限エラー
+//        if (!$check_result["check"]) {
+//            abort(403, "認証エラー。");
+//        }
+    }
+
+    /**
+     *  リモート初期表示関数
+     */
+    public function remote($request, $page_id, $frame_id, $post_id = null)
+    {
+        // バケツデータ取得
+        $dronestudy = $this->getPluginBucket($this->buckets->id);
+
+        // ユーザ取得
+        $this->apiGetUsers($dronestudy);
+
+
+
+        // 表示テンプレートを呼び出す。
+        return $this->view('remote', [
+//            'dronestudy' => $dronestudy,
+//            'dronestudy_post' => $dronestudy_post,
+//            'dronestudy_posts' => $dronestudy_posts,
+        ]);
+    }
+
+    /**
+     *  実行
+     */
+    public function run($request, $page_id, $frame_id, $post_id = null)
+    {
+        $tello = new Tello();
+
+        $tello->takeoff();
+
+        sleep(5);
+
+        $tello->land();
+
+        return $this->index($request, $page_id, $frame_id, $post_id);
     }
 
     /**
@@ -118,7 +235,7 @@ class DronestudiesPlugin extends UserPluginOptionBase
     {
         // 表示テンプレートを呼び出す。
         return $this->view('list_buckets', [
-            'plugin_buckets' => Dronestudy::orderBy('created_at', 'desc')->paginate(10),
+            'plugin_buckets' => Dronestudy::orderBy('created_at', 'desc')->paginate(10, ["*"], "frame_{$frame_id}_page"),
         ]);
     }
 
@@ -212,6 +329,8 @@ class DronestudiesPlugin extends UserPluginOptionBase
         // プラグインバケツにデータを設定して保存
         $dronestudy = $this->getPluginBucket($bucket->id);
         $dronestudy->name = $request->name;
+        $dronestudy->remote_url = $request->remote_url;
+        $dronestudy->secret_code = $request->secret_code;
         $dronestudy->save();
 
         return $bucket->id;
@@ -229,8 +348,8 @@ class DronestudiesPlugin extends UserPluginOptionBase
     {
         // ブロックのXML をそのまま保存する。
         $dronestudy = $this->getPluginBucket($this->buckets->id);
-        $content = DronestudyContent::updateOrCreate(
-            ['id' => $request->content_id],
+        $post = DronestudyPost::updateOrCreate(
+            ['id' => $request->post_id],
             [
                 'dronestudy_id' => $dronestudy->id,
                 'title' => $request->title,
@@ -238,7 +357,7 @@ class DronestudiesPlugin extends UserPluginOptionBase
             ],
         );
         // 登録後はリダイレクトして編集ページを開く。
-        return new Collection(['redirect_path' => url('/') . "/plugin/dronestudies/index/" . $page_id . "/" . $frame_id . "/" . $content->id . "#frame-" . $frame_id]);
+        return new Collection(['redirect_path' => url('/') . "/plugin/dronestudies/index/" . $page_id . "/" . $frame_id . "/" . $post->id . "#frame-" . $frame_id]);
     }
 
     /**
@@ -263,9 +382,9 @@ class DronestudiesPlugin extends UserPluginOptionBase
         Buckets::find($dronestudy->bucket_id)->delete();
 
         // DroneStudyコンテンツ削除
-        $dronestudy_content = $this->fetchDroneStudyContent(null, $dronestudy->id);
-        $this->deleteDroneStudyContents(
-            $dronestudy_content->id
+        $dronestudy_post = $this->fetchDroneStudyPost(null, $dronestudy->id);
+        $this->deleteDroneStudyPosts(
+            $dronestudy_post->id
         );
 
         // プラグインデータ削除
@@ -329,7 +448,7 @@ class DronestudiesPlugin extends UserPluginOptionBase
     public function saveView($request, $page_id, $frame_id, $dronestudy_id)
     {
         // フレーム設定保存
-        $this->saveFrameConfigs($request, $frame_id, DronestudyFrameConfig::getMemberKeys());
+        $this->saveFrameConfigs($request, $frame_id);
         // 更新したので、frame_configsを設定しなおす
         $this->refreshFrameConfigs();
 
@@ -343,18 +462,11 @@ class DronestudiesPlugin extends UserPluginOptionBase
      * @param int $frame_id フレームID
      * @param array $frame_config_names フレーム設定のname配列
      */
-    protected function saveFrameConfigs(\Illuminate\Http\Request $request, int $frame_id, array $frame_config_names)
+    protected function saveFrameConfigs(\Illuminate\Http\Request $request, int $frame_id)
     {
-        foreach ($frame_config_names as $key => $value) {
-
-            if (empty($request->$value)) {
-                return;
-            }
-
-            FrameConfig::updateOrCreate(
-                ['frame_id' => $frame_id, 'name' => $value],
-                ['value' => $request->$value]
-            );
-        }
+        FrameConfig::updateOrCreate(
+            ['frame_id' => $frame_id, 'name' => 'dronestudy_language'],
+            ['value' => $request->dronestudy_language]
+        );
     }
 }

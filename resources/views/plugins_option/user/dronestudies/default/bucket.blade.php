@@ -48,6 +48,22 @@
             </div>
         </div>
 
+        <div class="form-group row">
+            <label class="{{$frame->getSettingLabelClass()}}">リモートURL</label>
+            <div class="{{$frame->getSettingInputClass()}}">
+                <input type="text" name="remote_url" value="{{old('remote_url', $dronestudy->remote_url)}}" class="form-control @if ($errors && $errors->has('remote_url')) border-danger @endif">
+                @include('plugins.common.errors_inline', ['name' => 'remote_url'])
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="{{$frame->getSettingLabelClass()}}">秘密コード</label>
+            <div class="{{$frame->getSettingInputClass()}}">
+                <input type="text" name="secret_code" value="{{old('secret_code', $dronestudy->secret_code)}}" class="form-control @if ($errors && $errors->has('secret_code')) border-danger @endif">
+                @include('plugins.common.errors_inline', ['name' => 'secret_code'])
+            </div>
+        </div>
+
         {{-- Submitボタン --}}
         <div class="form-group text-center">
             <div class="row">

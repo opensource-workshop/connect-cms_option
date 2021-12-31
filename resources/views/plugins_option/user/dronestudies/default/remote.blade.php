@@ -1,5 +1,5 @@
 {{--
- * 表示画面テンプレート。
+ * リモート画面テンプレート。
  *
  * @author 永原　篤 <nagahara@opensource-workshop.jp>
  * @copyright OpenSource-WorkShop Co.,Ltd. All Rights Reserved
@@ -10,7 +10,7 @@
 @section("plugin_contents_$frame->id")
     @if (isset($frame) && $frame->bucket_id)
         {{-- バケツあり --}}
-        @include('plugins_option.user.dronestudies.default.index_main')
+        @include('plugins_option.user.dronestudies.default.remote_main')
     @else
         {{-- バケツなし --}}
         <div class="card border-danger">

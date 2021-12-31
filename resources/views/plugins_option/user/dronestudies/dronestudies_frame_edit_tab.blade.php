@@ -23,6 +23,15 @@
         <a href="{{url('/')}}/plugin/dronestudies/createBuckets/{{$page->id}}/{{$frame->id}}#frame-{{$frame->id}}" class="nav-link">新規作成</a>
     </li>
 @endif
+@if ($action == 'editView')
+    <li role="presentation" class="nav-item">
+        <span class="nav-link"><span class="active">表示設定</span></span>
+    </li>
+@else
+    <li role="presentation" class="nav-item">
+        <a href="{{url('/')}}/plugin/dronestudies/editView/{{$page->id}}/{{$frame->id}}#frame-{{$frame->id}}" class="nav-link">表示設定</a>
+    </li>
+@endif
 @if ($action == 'listBuckets')
     <li role="presentation" class="nav-item">
         <span class="nav-link"><span class="active">表示コンテンツ選択</span></span>
