@@ -61,6 +61,7 @@
                         日本語(ひらがな)
                     </label>
                 </div>
+{{--
                 <div class="custom-control custom-radio custom-control-inline">
                     <input
                         type="radio"
@@ -74,6 +75,7 @@
                         日本語(ひらがなMIX)
                     </label>
                 </div>
+--}}
             </div>
         </div>
 

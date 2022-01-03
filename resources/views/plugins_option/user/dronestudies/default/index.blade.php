@@ -8,6 +8,11 @@
 @extends('core.cms_frame_base')
 
 @section("plugin_contents_$frame->id")
+
+@if ($errors && $errors->has('tello_exception'))
+    {{$errors->first('tello_exception')}}
+@endif
+
     @if (isset($frame) && $frame->bucket_id)
         {{-- バケツあり --}}
         @include('plugins_option.user.dronestudies.default.index_main')

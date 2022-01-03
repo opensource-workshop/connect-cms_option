@@ -9,42 +9,58 @@
 <script src="{{url('/')}}/js/blockly/blocks_compressed.js"></script>
 <script src="{{url('/')}}/js/blockly/javascript_compressed.js"></script>
 <script src="{{url('/')}}/js/blockly/php_compressed.js"></script>
-<script src="{{url('/')}}/js/blockly/msg/ja.js"></script>
 @if (FrameConfig::getConfigValueAndOld($frame_configs, 'dronestudy_language', 'ja_hiragana') == 'ja_hiragana')
-    <script src="{{url('/')}}/js/blockly/drone_block_hiragana.js"></script>
+    <script src="{{url('/')}}/js/blockly/msg/ja_hiragana.js"></script>
+    <script src="{{url('/')}}/js/blockly/msg/ja_hiragana_drone.js"></script>
+{{--
 @elseif (FrameConfig::getConfigValueAndOld($frame_configs, 'dronestudy_language', 'ja_hiragana') == 'ja_hiragana_mix')
-    <script src="{{url('/')}}/js/blockly/drone_block_hiragana_mix.js"></script>
+    <script src="{{url('/')}}/js/blockly/msg/ja_hiragana_mix.js"></script>
+    <script src="{{url('/')}}/js/blockly/msg/ja_hiragana_mix_drone.js"></script>
+--}}
 @else
-    <script src="{{url('/')}}/js/blockly/drone_block.js"></script>
+    <script src="{{url('/')}}/js/blockly/msg/ja.js"></script>
+    <script src="{{url('/')}}/js/blockly/msg/ja_drone.js"></script>
 @endif
+<script src="{{url('/')}}/js/blockly/drone_block.js"></script>
 
 <script type="text/javascript">
     {{-- JavaScript --}}
-    function save_xml() {
-        // ワークスペースをXMLでエクスポートして保存する。
+    // プログラムのXMLを取得する
+    function get_xml_text() {
         var xml = Blockly.Xml.workspaceToDom(workspace);
-        var myBlockXml = Blockly.Xml.domToText(xml);
+        return Blockly.Xml.domToText(xml);
+    }
+    // ワークスペースをXMLでエクスポートして保存する。
+    function save_xml() {
+        // POSTするためのinput タグに設定する。
         let el_xml_text = document.getElementById('xml_text');
-        //alert(myBlockXml);
-        //alert(el_xml_text.value);
-        el_xml_text.value = myBlockXml;
-
-
+        el_xml_text.value = get_xml_text();
+        // 保存
+        form_dronestudy.action = "{{url('/')}}/redirect/plugin/dronestudies/save/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}";
         form_dronestudy.submit();
     }
+    // 実行
     function drone_run() {
-        location.href="{{url('/')}}/plugin/dronestudies/run/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}";
+
+        var jscode = Blockly.PHP.workspaceToCode(workspace);
+        alert(jscode);
+
+
+        form_dronestudy.action = "{{url('/')}}/redirect/plugin/dronestudies/run/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}";
+        form_dronestudy.submit();
     }
+    // リモートモードへ
     function change_remote() {
         location.href="{{url('/')}}/plugin/dronestudies/remote/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}";
     }
 
 </script>
 
-<form action="{{url('/')}}/redirect/plugin/dronestudies/save/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}" method="POST" name="form_dronestudy" class="">
+<form action="" method="POST" name="form_dronestudy" class="">
     {{csrf_field()}}
     <input type="hidden" name="dronestudy_id" value="{{$dronestudy->id}}">
     <input type="hidden" name="post_id" value="{{$dronestudy_post->id}}">
+    <input type="hidden" name="redirect_path" value="{{url('/')}}/plugin/dronestudies/index/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}">
 
     @can("role_article")
         <div class="form-group">
@@ -57,6 +73,7 @@
     <div class="form-group">
         <label class="control-label">タイトル <label class="badge badge-danger">必須</label></label><br />
         <input type="text" name="title" value="{{old('title', $dronestudy_post->title)}}" class="form-control">
+        @if ($errors && $errors->has('title')) <div class="text-danger">{{$errors->first('title')}}</div> @endif
     </div>
 
     <div class="form-group">
@@ -65,6 +82,7 @@
         <div class="table-responsive rounded-left">
             <div id="blocklyDiv"  style="height: 500px; width: 100%;"></div>
         </div>
+        @if ($errors && $errors->has('xml_text')) <div class="text-danger">{{$errors->first('xml_text')}}</div> @endif
 
         <xml xmlns="https://developers.google.com/blockly/xml" id="toolbox" style="display: none">
             <block type="drone_takeoff"></block>
@@ -72,17 +90,13 @@
             <block type="drone_up"></block>
             <block type="drone_down"></block>
             <block type="drone_forward"></block>
-            <block type="drone_backward"></block>
-            <block type="drone_left"></block>
+            <block type="drone_back"></block>
             <block type="drone_right"></block>
-            <block type="drone_leftturn"></block>
-            <block type="drone_rightturn"></block>
+            <block type="drone_left"></block>
+            <block type="drone_ccw"></block>
+            <block type="drone_cw"></block>
             <block type="drone_flip"></block>
-            <block type="controls_repeat_ext"></block>
-            <block type="math_number">
-                <field name="NUM">0</field>
-            </block>
-            <block type="controls_if"></block>
+            <block type="drone_loop"></block>
         </xml>
 
         <script>

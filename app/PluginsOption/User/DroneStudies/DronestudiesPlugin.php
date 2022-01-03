@@ -21,6 +21,8 @@ use App\ModelsOption\User\Dronestudies\DronestudyPost;
 //use App\Enums\CabinetFrameConfig;
 //use App\Enums\CabinetSort;
 
+use App\Rules\CustomValiTextMax;
+
 use App\PluginsOption\User\Dronestudies\Tello;
 
 use App\PluginsOption\User\UserPluginOptionBase;
@@ -56,8 +58,8 @@ class DronestudiesPlugin extends UserPluginOptionBase
     {
         // 標準関数以外で画面などから呼ばれる関数の定義
         $functions = array();
-        $functions['get']  = ['index', 'remote', 'run'];
-        $functions['post'] = [];
+        $functions['get']  = ['index', 'remote'];
+        $functions['post'] = ['run'];
         return $functions;
     }
 
@@ -171,18 +173,24 @@ class DronestudiesPlugin extends UserPluginOptionBase
      */
     private function apiGetUsers($dronestudy)
     {
+        // バケツデータ取得
+        $dronestudy = $this->getPluginBucket($this->buckets->id);
+
         // リモートのURL 組み立て
-        $request_url = $dronestudy->remote_url . "/api/dronestudy/getUsers?secret_code=" . $dronestudy->secret_code;
+        $request_url = $dronestudy->remote_url . "/api/dronestudy/getUsers?secret_code=" . $dronestudy->secret_code . "&dronestudy_id=" . $dronestudy->id;
 
         // API 呼び出し
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $request_url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $return_json = curl_exec($ch);
-        \Log::debug($request_url);
-        \Log::debug(json_decode($return_json, JSON_UNESCAPED_UNICODE));
+        //\Log::debug($request_url);
+        //\Log::debug(json_decode($return_json, JSON_UNESCAPED_UNICODE));
 
-\Log::debug(curl_error($ch));
+//\Log::debug(curl_error($ch));
+
+        // セッションを終了する
+        curl_close($ch);
 
         // JSON データを複合化
 //        $check_result = json_decode($return_json, true);
@@ -199,13 +207,17 @@ class DronestudiesPlugin extends UserPluginOptionBase
      */
     public function remote($request, $page_id, $frame_id, $post_id = null)
     {
+        // 項目のエラーチェック
+        $validator = Validator::make($request->all(), []);
+        $validator->setAttributeNames([
+            'name' => 'DroneStudy名',
+        ]);
+
         // バケツデータ取得
         $dronestudy = $this->getPluginBucket($this->buckets->id);
 
         // ユーザ取得
         $this->apiGetUsers($dronestudy);
-
-
 
         // 表示テンプレートを呼び出す。
         return $this->view('remote', [
@@ -220,15 +232,23 @@ class DronestudiesPlugin extends UserPluginOptionBase
      */
     public function run($request, $page_id, $frame_id, $post_id = null)
     {
-        $tello = new Tello();
+        try {
+            $tello = new Tello();
 
-        $tello->takeoff();
+            $tello->takeoff();
 
-        sleep(5);
+            sleep(5);
 
-        $tello->land();
+            $tello->land();
+        } catch (\Throwable $t) {
+            $validator = Validator::make($request->all(), []);
+            $error_msg = $t->getMessage();
+            $validator->errors()->add('tello_exception', $error_msg);
+            return back()->withInput()->withErrors($validator);
+        }
 
-        return $this->index($request, $page_id, $frame_id, $post_id);
+
+//        return $this->index($request, $page_id, $frame_id, $post_id);
     }
 
     /**
@@ -340,6 +360,33 @@ class DronestudiesPlugin extends UserPluginOptionBase
     }
 
     /**
+     * プログラム登録/更新のバリデーターを取得する。
+     *
+     * @param \Illuminate\Http\Request $request リクエスト
+     * @return \Illuminate\Contracts\Validation\Validator バリデーター
+     */
+    private function getPostValidator($request)
+    {
+        // 項目のエラーチェック
+        $validator = Validator::make($request->all(), [
+            'title' => [
+                'required',
+                'max:255'
+            ],
+            'xml_text' => [
+                'required',
+                new CustomValiTextMax()
+            ],
+        ]);
+        $validator->setAttributeNames([
+            'title' => 'タイトル',
+            'xml_text' => 'プログラム',
+        ]);
+
+        return $validator;
+    }
+
+    /**
      * DroneStudy コンテンツを登録する。
      *
      * @param \Illuminate\Http\Request $request リクエスト
@@ -349,6 +396,12 @@ class DronestudiesPlugin extends UserPluginOptionBase
      */
     public function save($request, $page_id, $frame_id)
     {
+        // 入力エラーがあった場合は入力画面に戻る。
+        $validator = $this->getPostValidator($request);
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+
         // ブロックのXML をそのまま保存する。
         $dronestudy = $this->getPluginBucket($this->buckets->id);
         $post = DronestudyPost::updateOrCreate(

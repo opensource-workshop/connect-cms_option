@@ -35,12 +35,20 @@ class DronestudyApi extends ApiPluginBase
             return $this->encodeJson($ret, $request);
         }
 
-        // 返すデータ取得
-        $users = User::get();
+        // 対象のDroneStudy から、プログラム登録しているユーザを返す。
+        $users = User::select('users.id', 'users.name')
+                     ->join('dronestudy_posts', 'dronestudy_posts.created_id', '=', 'users.id')
+                     ->where('dronestudy_posts.dronestudy_id', $request->dronestudy_id)
+                     ->groupBy('users.id', 'users.name')
+                     ->get();
         if (empty($user)) {
             $ret = array('code' => 404, 'message' => '該当のユーザがいません。');
         }
 
+        // ソート
+        $users = $users->sortBy('id');
+
+        // 戻り値
         $ret = array('code' => 200, 'message' => '', 'userid' => $users);
         return $this->encodeJson($ret, $request);
     }
