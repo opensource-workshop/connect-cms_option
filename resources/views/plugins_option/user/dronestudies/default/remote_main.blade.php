@@ -38,7 +38,7 @@
 
 </script>
 
-<form action="{{url('/')}}/redirect/plugin/dronestudies/save/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}" method="POST" name="form_dronestudy" class="">
+<form action="{{url('/')}}/plugin/dronestudies/remote/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}" method="POST" name="form_dronestudy" class="">
     {{csrf_field()}}
 {{--
     <input type="hidden" name="dronestudy_id" value="{{$dronestudy->id}}">
@@ -52,6 +52,38 @@
             </div>
         </div>
     @endcan
+
+    <div class="form-group">
+        <label class="control-label">ユーザ</label><small class="text-muted pl-2">※ 変更すると画面を読み直します。</small><br />
+        <select class="form-control" name="remote_user_id" onchange="javascript:submit(this.form);">
+            <option value="">対象ユーザ</option>
+            @foreach ($remote_users as $remote_user)
+                @if ($remote_user->id == $remote_user_id)
+                    <option value="{{$remote_user->id}}" selected class="text-white bg-primary">{{$remote_user->name}}</option>
+                @else
+                    <option value="{{$remote_user->id}}">{{$remote_user->name}}</option>
+                @endif
+            @endforeach
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label class="control-label">プログラム</label><br />
+        <select class="form-control" name="remote_post_id">
+            <option value="">プログラム</option>
+            @foreach ($posts as $post)
+{{--
+                @if ($post->id == $remote_post_id)
+                    <option value="{{$remote_user->id}}" selected class="text-white bg-primary">{{$remote_user->name}}</option>
+                @else
+--}}
+                    <option value="{{$post->id}}">{{$post->title}}</option>
+{{--
+                @endif
+--}}
+            @endforeach
+        </select>
+    </div>
 
     @can('posts.create',[[null, 'dronestudies', $buckets]])
     <div class="form-group">

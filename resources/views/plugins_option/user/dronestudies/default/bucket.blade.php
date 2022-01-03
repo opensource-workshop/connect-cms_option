@@ -57,6 +57,14 @@
         </div>
 
         <div class="form-group row">
+            <label class="{{$frame->getSettingLabelClass()}}">リモートID</label>
+            <div class="{{$frame->getSettingInputClass()}}">
+                <input type="text" name="remote_id" value="{{old('remote_id', $dronestudy->remote_id)}}" class="form-control @if ($errors && $errors->has('remote_id')) border-danger @endif">
+                @include('plugins.common.errors_inline', ['name' => 'remote_id'])
+            </div>
+        </div>
+
+        <div class="form-group row">
             <label class="{{$frame->getSettingLabelClass()}}">秘密コード</label>
             <div class="{{$frame->getSettingInputClass()}}">
                 <input type="text" name="secret_code" value="{{old('secret_code', $dronestudy->secret_code)}}" class="form-control @if ($errors && $errors->has('secret_code')) border-danger @endif">

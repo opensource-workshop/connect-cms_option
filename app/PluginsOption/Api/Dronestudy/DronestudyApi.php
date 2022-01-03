@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 use App\User;
 //use App\Models\Core\UsersRoles;
+use App\ModelsOption\User\Dronestudies\DronestudyPost;
 
 //use App\Traits\ConnectCommonTrait;
 use App\Plugins\Api\ApiPluginBase;
@@ -25,9 +26,10 @@ class DronestudyApi extends ApiPluginBase
     //use ConnectCommonTrait;
 
     /**
-     *  ページ初期表示
+     *  対象ユーザ取得
+     *  選択されているバケツにプログラムが登録されているユーザ
      */
-    public function getUsers($request, $userid)
+    public function getUsers($request)
     {
         // API 共通チェック
         $ret = $this->apiCallCheck($request);
@@ -49,7 +51,37 @@ class DronestudyApi extends ApiPluginBase
         $users = $users->sortBy('id');
 
         // 戻り値
-        $ret = array('code' => 200, 'message' => '', 'userid' => $users);
+        $ret = array('code' => 200, 'message' => '', 'users' => $users);
+        return $this->encodeJson($ret, $request);
+    }
+
+    /**
+     *  対象プログラム取得
+     *  選択されているバケツの対象ユーザのプログラム
+     */
+    public function getPosts($request)
+    {
+        // API 共通チェック
+        $ret = $this->apiCallCheck($request);
+        if (!empty($ret['code'])) {
+            return $this->encodeJson($ret, $request);
+        }
+
+        // 対象のDroneStudy、ユーザから、プログラムを返す。
+        $posts = DronestudyPost::select('dronestudy_posts.id', 'dronestudy_posts.title', 'users.id AS user_id', 'users.name')
+                     ->join('users', 'dronestudy_posts.created_id', '=', 'users.id')
+                     ->where('dronestudy_posts.dronestudy_id', $request->dronestudy_id)
+                     ->where('dronestudy_posts.created_id', $request->user_id)
+                     ->get();
+        if (empty($user)) {
+            $ret = array('code' => 404, 'message' => '該当のプログラムはありません。');
+        }
+
+        // ソート
+        $posts = $posts->sortBy('post_id');
+
+        // 戻り値
+        $ret = array('code' => 200, 'message' => '', 'posts' => $posts);
         return $this->encodeJson($ret, $request);
     }
 }

@@ -18,6 +18,7 @@ class CreateDronestudiesTable extends Migration
             $table->integer('bucket_id');
             $table->string('name', 255)->comment('DroneStudy名');
             $table->string('remote_url', 255)->nullable()->comment('リモートURL');
+            $table->integer('remote_id')->nullable()->comment('リモートDroneStudy-ID');
             $table->string('secret_code', 255)->nullable()->comment('秘密コード');
             $table->integer('created_id')->nullable();
             $table->string('created_name', 255)->nullable();

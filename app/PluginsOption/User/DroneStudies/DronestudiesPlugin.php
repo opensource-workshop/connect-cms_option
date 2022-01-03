@@ -59,7 +59,7 @@ class DronestudiesPlugin extends UserPluginOptionBase
         // 標準関数以外で画面などから呼ばれる関数の定義
         $functions = array();
         $functions['get']  = ['index', 'remote'];
-        $functions['post'] = ['run'];
+        $functions['post'] = ['run', 'remote'];
         return $functions;
     }
 
@@ -177,7 +177,7 @@ class DronestudiesPlugin extends UserPluginOptionBase
         $dronestudy = $this->getPluginBucket($this->buckets->id);
 
         // リモートのURL 組み立て
-        $request_url = $dronestudy->remote_url . "/api/dronestudy/getUsers?secret_code=" . $dronestudy->secret_code . "&dronestudy_id=" . $dronestudy->id;
+        $request_url = $dronestudy->remote_url . "/api/dronestudy/getUsers?secret_code=" . $dronestudy->secret_code . "&dronestudy_id=" . $dronestudy->remote_id;
 
         // API 呼び出し
         $ch = curl_init();
@@ -187,19 +187,51 @@ class DronestudiesPlugin extends UserPluginOptionBase
         //\Log::debug($request_url);
         //\Log::debug(json_decode($return_json, JSON_UNESCAPED_UNICODE));
 
-//\Log::debug(curl_error($ch));
+        // セッションを終了する
+        curl_close($ch);
+
+        // JSON データを複合化
+        // $check_result = json_decode($return_json, true);
+        // Log::debug(print_r($check_result, true));
+
+        // 権限エラー
+        // if (!$check_result["check"]) {
+        //     abort(403, "認証エラー。");
+        // }
+        return json_decode($return_json)->users;
+    }
+
+    /**
+     *  プログラム取得
+     */
+    private function apiGetPosts($dronestudy, $remote_user_id)
+    {
+        // バケツデータ取得
+        $dronestudy = $this->getPluginBucket($this->buckets->id);
+
+        // リモートのURL 組み立て
+        $request_url = $dronestudy->remote_url . "/api/dronestudy/getPosts?secret_code=" . $dronestudy->secret_code . "&dronestudy_id=" . $dronestudy->remote_id . "&user_id=" . $remote_user_id;
+
+        // API 呼び出し
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $request_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $return_json = curl_exec($ch);
+        //\Log::debug($request_url);
+        //\Log::debug(json_decode($return_json, JSON_UNESCAPED_UNICODE));
 
         // セッションを終了する
         curl_close($ch);
 
         // JSON データを複合化
-//        $check_result = json_decode($return_json, true);
-        //Log::debug(print_r($check_result, true));
+        // $check_result = json_decode($return_json, true);
+        // Log::debug(print_r($check_result, true));
 
         // 権限エラー
-//        if (!$check_result["check"]) {
-//            abort(403, "認証エラー。");
-//        }
+        // if (!$check_result["check"]) {
+        //     abort(403, "認証エラー。");
+        // }
+        return json_decode($return_json)->posts;
     }
 
     /**
@@ -217,10 +249,18 @@ class DronestudiesPlugin extends UserPluginOptionBase
         $dronestudy = $this->getPluginBucket($this->buckets->id);
 
         // ユーザ取得
-        $this->apiGetUsers($dronestudy);
+        $remote_users = $this->apiGetUsers($dronestudy);
+
+        // ユーザが選択されていたら、プログラム一覧を取得する。
+        if ($request->filled("remote_user_id")) {
+            $posts = $this->apiGetPosts($dronestudy, $request->remote_user_id);
+        }
 
         // 表示テンプレートを呼び出す。
         return $this->view('remote', [
+              'remote_users' => $remote_users,
+              'remote_user_id' => $request->remote_user_id,
+              'posts' => $posts,
 //            'dronestudy' => $dronestudy,
 //            'dronestudy_post' => $dronestudy_post,
 //            'dronestudy_posts' => $dronestudy_posts,
@@ -353,6 +393,7 @@ class DronestudiesPlugin extends UserPluginOptionBase
         $dronestudy = $this->getPluginBucket($bucket->id);
         $dronestudy->name = $request->name;
         $dronestudy->remote_url = $request->remote_url;
+        $dronestudy->remote_id = $request->remote_id;
         $dronestudy->secret_code = $request->secret_code;
         $dronestudy->save();
 

@@ -12,7 +12,7 @@ class Dronestudy extends Model
     use UserableNohistory;
 
     // 更新する項目の定義
-    protected $fillable = ['bucket_id', 'name'];
+    protected $fillable = ['bucket_id', 'name', 'remote_url', 'remote_id', 'secret_code'];
 
     // Laravel がBbs をすでに複数形と認識するためにテーブル名指定。
 //    protected $table = 'bbses';

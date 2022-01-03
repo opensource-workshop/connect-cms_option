@@ -35,6 +35,7 @@
         // POSTするためのinput タグに設定する。
         let el_xml_text = document.getElementById('xml_text');
         el_xml_text.value = get_xml_text();
+alert(el_xml_text.value);
         // 保存
         form_dronestudy.action = "{{url('/')}}/redirect/plugin/dronestudies/save/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}";
         form_dronestudy.submit();
@@ -97,6 +98,15 @@
             <block type="drone_cw"></block>
             <block type="drone_flip"></block>
             <block type="drone_loop"></block>
+{{--
+	        <block type="controls_repeat_ext"></block>
+            <block type="math_number">
+                <field name="NUM">3</field>
+            </block>
+	        <block type="text"></block>
+	        <block type="text_print"></block>
+	        <block type="drone_test"></block>
+--}}
         </xml>
 
         <script>
