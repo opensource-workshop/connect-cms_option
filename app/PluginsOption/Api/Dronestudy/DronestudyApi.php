@@ -56,7 +56,7 @@ class DronestudyApi extends ApiPluginBase
     }
 
     /**
-     *  対象プログラム取得
+     *  対象プログラムの一覧取得
      *  選択されているバケツの対象ユーザのプログラム
      */
     public function getPosts($request)
@@ -82,6 +82,29 @@ class DronestudyApi extends ApiPluginBase
 
         // 戻り値
         $ret = array('code' => 200, 'message' => '', 'posts' => $posts);
+        return $this->encodeJson($ret, $request);
+    }
+
+    /**
+     *  対象プログラム取得
+     *  選択されているプログラム
+     */
+    public function getPost($request)
+    {
+        // API 共通チェック
+        $ret = $this->apiCallCheck($request);
+        if (!empty($ret['code'])) {
+            return $this->encodeJson($ret, $request);
+        }
+
+        // 対象のDroneStudy、ユーザから、プログラムを返す。
+        $post = DronestudyPost::find($request->post_id);
+        if (empty($post)) {
+            $ret = array('code' => 404, 'message' => '該当のプログラムはありません。');
+        }
+
+        // 戻り値
+        $ret = array('code' => 200, 'message' => '', 'post' => $post);
         return $this->encodeJson($ret, $request);
     }
 }

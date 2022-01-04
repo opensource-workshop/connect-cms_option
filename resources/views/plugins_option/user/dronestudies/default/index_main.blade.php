@@ -13,7 +13,7 @@
     <script src="{{url('/')}}/js/blockly/msg/ja_hiragana.js"></script>
     <script src="{{url('/')}}/js/blockly/msg/ja_hiragana_drone.js"></script>
 {{--
-@elseif (FrameConfig::getConfigValueAndOld($frame_configs, 'dronestudy_language', 'ja_hiragana') == 'ja_hiragana_mix')
+@elseif (FrameConfig::getConfigValueAndOld($frame_configs, 'dronestudy_language', 'ja_hiragana_mix') == 'ja_hiragana_mix')
     <script src="{{url('/')}}/js/blockly/msg/ja_hiragana_mix.js"></script>
     <script src="{{url('/')}}/js/blockly/msg/ja_hiragana_mix_drone.js"></script>
 --}}
@@ -35,18 +35,15 @@
         // POSTするためのinput タグに設定する。
         let el_xml_text = document.getElementById('xml_text');
         el_xml_text.value = get_xml_text();
-alert(el_xml_text.value);
+        // alert(el_xml_text.value);
         // 保存
         form_dronestudy.action = "{{url('/')}}/redirect/plugin/dronestudies/save/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}";
         form_dronestudy.submit();
     }
     // 実行
     function drone_run() {
-
-        var jscode = Blockly.PHP.workspaceToCode(workspace);
-        alert(jscode);
-
-
+        let el_xml_text = document.getElementById('xml_text');
+        el_xml_text.value = get_xml_text();
         form_dronestudy.action = "{{url('/')}}/redirect/plugin/dronestudies/run/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}";
         form_dronestudy.submit();
     }
@@ -60,8 +57,10 @@ alert(el_xml_text.value);
 <form action="" method="POST" name="form_dronestudy" class="">
     {{csrf_field()}}
     <input type="hidden" name="dronestudy_id" value="{{$dronestudy->id}}">
-    <input type="hidden" name="post_id" value="{{$dronestudy_post->id}}">
+    <input type="hidden" name="post_id" value="{{$post->id}}">
     <input type="hidden" name="redirect_path" value="{{url('/')}}/plugin/dronestudies/index/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}">
+    <input type="hidden" name="xml_text" value="">
+    <input type="hidden" name="mode" value="local">
 
     @can("role_article")
         <div class="form-group">
@@ -73,69 +72,12 @@ alert(el_xml_text.value);
 
     <div class="form-group">
         <label class="control-label">タイトル <label class="badge badge-danger">必須</label></label><br />
-        <input type="text" name="title" value="{{old('title', $dronestudy_post->title)}}" class="form-control">
+        <input type="text" name="title" value="{{old('title', $post->title)}}" class="form-control">
         @if ($errors && $errors->has('title')) <div class="text-danger">{{$errors->first('title')}}</div> @endif
     </div>
 
-    <div class="form-group">
-        <label class="control-label">プログラム <label class="badge badge-danger">必須</label></label><br />
-        <input type="hidden" name="xml_text" id="xml_text" value="">
-        <div class="table-responsive rounded-left">
-            <div id="blocklyDiv"  style="height: 500px; width: 100%;"></div>
-        </div>
-        @if ($errors && $errors->has('xml_text')) <div class="text-danger">{{$errors->first('xml_text')}}</div> @endif
-
-        <xml xmlns="https://developers.google.com/blockly/xml" id="toolbox" style="display: none">
-            <block type="drone_takeoff"></block>
-            <block type="drone_land"></block>
-            <block type="drone_up"></block>
-            <block type="drone_down"></block>
-            <block type="drone_forward"></block>
-            <block type="drone_back"></block>
-            <block type="drone_right"></block>
-            <block type="drone_left"></block>
-            <block type="drone_ccw"></block>
-            <block type="drone_cw"></block>
-            <block type="drone_flip"></block>
-            <block type="drone_loop"></block>
-{{--
-	        <block type="controls_repeat_ext"></block>
-            <block type="math_number">
-                <field name="NUM">3</field>
-            </block>
-	        <block type="text"></block>
-	        <block type="text_print"></block>
-	        <block type="drone_test"></block>
---}}
-        </xml>
-
-        <script>
-            var blocklyArea = document.getElementById('blocklyArea');
-            var blocklyDiv = document.getElementById('blocklyDiv');
-            var workspace = Blockly.inject(blocklyDiv, {
-                media: 'https://unpkg.com/blockly/media/',
-                toolbox: document.getElementById('toolbox'),
-                zoom: {
-                    controls: true,
-                    wheel: false,
-                    startScale: 0.9,
-                    maxScale: 3,
-                    minScale: 0.5,
-                    scaleSpeed: 1.2,
-                    pinch: true
-                },
-                trashcan: true
-            });
-        </script>
-    </div>
-
-    {{--
-    <div class="form-group">
-        <label class="control-label">コード <label class="badge badge-danger">必須</label></label><br />
-        <textarea id="xml_text" class="form-control" rows="10" name="xml_text" style="font-family:'ＭＳ ゴシック', 'MS Gothic', 'Osaka－等幅', Osaka-mono, monospace;">{!!old('xml_text', $dronestudy_post->xml_text)!!}</textarea>
-        @if ($errors && $errors->has('xml_text')) <div class="text-danger">{{$errors->first('xml_text')}}</div> @endif
-    </div>
-    --}}
+    {{-- プログラム（Blockly） --}}
+    @include('plugins_option.user.dronestudies.default.block_input')
 
     @can('posts.create',[[null, 'dronestudies', $buckets]])
     <div class="form-group">
@@ -149,8 +91,8 @@ alert(el_xml_text.value);
                 </div>
             </div>
             <div class="col-sm-2">
-                @if (!empty($dronestudy_post->id))
-                    <a data-toggle="collapse" href="#collapse{{$dronestudy_post->id}}">
+                @if (!empty($post->id))
+                    <a data-toggle="collapse" href="#collapse{{$post->id}}">
                         <span class="btn btn-danger"><i class="fas fa-trash-alt"></i> <span class="hidden-xs">削除</span></span>
                     </a>
                 @endif
@@ -160,14 +102,14 @@ alert(el_xml_text.value);
     @endcan
 </form>
 
-<div id="collapse{{$dronestudy_post->id}}" class="collapse mt-3">
+<div id="collapse{{$post->id}}" class="collapse mt-3">
     <div class="card border-danger mb-3">
         <div class="card-body">
             <span class="text-danger">プログラムを削除します。<br>元に戻すことはできないため、よく確認して実行してください。</span>
 
             <div class="text-center">
                 {{-- 削除ボタン --}}
-                <form action="{{url('/')}}/plugin/dronestudies/deletecode/{{$page->id}}/{{$frame_id}}/{{$dronestudy_post->id}}#frame-{{$frame->id}}" method="POST">
+                <form action="{{url('/')}}/plugin/dronestudies/deletecode/{{$page->id}}/{{$frame_id}}/{{$post->id}}#frame-{{$frame->id}}" method="POST">
                     {{csrf_field()}}
                     <button type="submit" class="btn btn-danger" onclick="javascript:return confirm('プログラムを削除します。\nよろしいですか？')"><i class="fas fa-check"></i> 本当に削除する</button>
                 </form>
@@ -181,11 +123,11 @@ alert(el_xml_text.value);
     <div class="card-header">保存済みプログラム</div>
     <div class="card-body">
         <ol>
-        @foreach($dronestudy_posts as $post)
-            @if($dronestudy_post->id == $post->id)
-                <li>{{$post->title}}［参照中］</li>
+        @foreach($posts as $post_item)
+            @if($post->id == $post_item->id)
+                <li>{{$post_item->title}}［参照中］</li>
             @else
-                <li><a href="{{URL::to('/')}}/plugin/dronestudies/index/{{$page->id}}/{{$frame_id}}/{{$post->id}}#frame-{{$frame->id}}">{{$post->title}}</a></li>
+                <li><a href="{{URL::to('/')}}/plugin/dronestudies/index/{{$page->id}}/{{$frame_id}}/{{$post_item->id}}#frame-{{$frame->id}}">{{$post_item->title}}</a></li>
             @endif
         @endforeach
         </ol>
@@ -200,10 +142,10 @@ alert(el_xml_text.value);
 </div>
 @endcan
 
-@if ($dronestudy_post->xml_text)
+@if (old('xml_text', $post->xml_text))
 <script>
     // ブロック再構築
-    var xml = Blockly.Xml.textToDom('{!!$dronestudy_post->xml_text!!}');
+    var xml = Blockly.Xml.textToDom('{!!old('xml_text', $post->xml_text)!!}');
     workspace.clear();
     Blockly.Xml.domToWorkspace(xml, workspace);
 </script>

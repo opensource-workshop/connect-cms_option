@@ -9,9 +9,14 @@
 
 @section("plugin_contents_$frame->id")
 
-@if ($errors && $errors->has('tello_exception'))
-    {{$errors->first('tello_exception')}}
-@endif
+    @if ($errors && $errors->has('tello_exception'))
+        <div class="card border-danger mb-3">
+            <div class="card-header bg-danger text-white">Drone 実行でエラーが発生しました。</div>
+            <div class="card-body">
+                {{$errors->first('tello_exception')}}
+            </div>
+        </div>
+    @endif
 
     @if (isset($frame) && $frame->bucket_id)
         {{-- バケツあり --}}

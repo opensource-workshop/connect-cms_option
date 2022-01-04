@@ -151,20 +151,20 @@ class DronestudiesPlugin extends UserPluginOptionBase
         // ログインチェック
         if (Auth::check()) {
             // 編集対象のプログラム
-            $dronestudy_post = $this->getPost($post_id);
+            $post = $this->getPost($post_id);
 
             // ユーザのプログラム一覧
-            $dronestudy_posts = DronestudyPost::where('created_id', Auth::user()->id)->get();
+            $posts = DronestudyPost::where('created_id', Auth::user()->id)->get();
         } else {
-            $dronestudy_post = new DronestudyPost();
-            $dronestudy_posts = new Collection();
+            $post = new DronestudyPost();
+            $posts = new Collection();
         }
 
         // 表示テンプレートを呼び出す。
         return $this->view('index', [
             'dronestudy' => $dronestudy,
-            'dronestudy_post' => $dronestudy_post,
-            'dronestudy_posts' => $dronestudy_posts,
+            'post' => $post,
+            'posts' => $posts,
         ]);
     }
 
@@ -202,7 +202,7 @@ class DronestudiesPlugin extends UserPluginOptionBase
     }
 
     /**
-     *  プログラム取得
+     *  プログラムの一覧取得
      */
     private function apiGetPosts($dronestudy, $remote_user_id)
     {
@@ -217,21 +217,34 @@ class DronestudiesPlugin extends UserPluginOptionBase
         curl_setopt($ch, CURLOPT_URL, $request_url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         $return_json = curl_exec($ch);
-        //\Log::debug($request_url);
-        //\Log::debug(json_decode($return_json, JSON_UNESCAPED_UNICODE));
 
         // セッションを終了する
         curl_close($ch);
 
-        // JSON データを複合化
-        // $check_result = json_decode($return_json, true);
-        // Log::debug(print_r($check_result, true));
-
-        // 権限エラー
-        // if (!$check_result["check"]) {
-        //     abort(403, "認証エラー。");
-        // }
         return json_decode($return_json)->posts;
+    }
+
+    /**
+     *  プログラム取得
+     */
+    private function apiGetPost($dronestudy, $remote_post_id)
+    {
+        // バケツデータ取得
+        $dronestudy = $this->getPluginBucket($this->buckets->id);
+
+        // リモートのURL 組み立て
+        $request_url = $dronestudy->remote_url . "/api/dronestudy/getPost?secret_code=" . $dronestudy->secret_code . "&post_id=" . $remote_post_id;
+
+        // API 呼び出し
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $request_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $return_json = curl_exec($ch);
+
+        // セッションを終了する
+        curl_close($ch);
+
+        return json_decode($return_json)->post;
     }
 
     /**
@@ -251,16 +264,27 @@ class DronestudiesPlugin extends UserPluginOptionBase
         // ユーザ取得
         $remote_users = $this->apiGetUsers($dronestudy);
 
-        // ユーザが選択されていたら、プログラム一覧を取得する。
-        if ($request->filled("remote_user_id")) {
-            $posts = $this->apiGetPosts($dronestudy, $request->remote_user_id);
+        if (old("remote_user_id", $request->filled("remote_user_id"))) {
+            // ユーザが選択されていたら、プログラム一覧を取得する。
+            $posts = $this->apiGetPosts($dronestudy, old("remote_user_id", $request->remote_user_id));
+        } else {
+            $posts = array();
+        }
+
+        // プログラムが選択されていたら、プログラムコードを取得する。
+        if (old("remote_user_id", $request->filled("remote_post_id"))) {
+            $post = $this->apiGetPost($dronestudy, old("remote_post_id", $request->remote_post_id));
+        } else {
+            $post = array();
         }
 
         // 表示テンプレートを呼び出す。
         return $this->view('remote', [
               'remote_users' => $remote_users,
-              'remote_user_id' => $request->remote_user_id,
+              'remote_user_id' => old("remote_user_id", $request->remote_user_id),
               'posts' => $posts,
+              'post' => $post,
+              'remote_post_id' => old("remote_post_id", $request->remote_post_id),
 //            'dronestudy' => $dronestudy,
 //            'dronestudy_post' => $dronestudy_post,
 //            'dronestudy_posts' => $dronestudy_posts,
@@ -272,6 +296,14 @@ class DronestudiesPlugin extends UserPluginOptionBase
      */
     public function run($request, $page_id, $frame_id, $post_id = null)
     {
+        // 入力エラーがあった場合は入力画面に戻る。
+        if ($request->mode == 'local') {
+            $validator = $this->getPostValidator($request);
+            if ($validator->fails()) {
+                return back()->withInput()->withErrors($validator);
+            }
+        }
+
         try {
             $tello = new Tello();
 
@@ -284,11 +316,10 @@ class DronestudiesPlugin extends UserPluginOptionBase
             $validator = Validator::make($request->all(), []);
             $error_msg = $t->getMessage();
             $validator->errors()->add('tello_exception', $error_msg);
-            return back()->withInput()->withErrors($validator);
+            return back()->withInput($request->all())->withErrors($validator);
         }
 
-
-//        return $this->index($request, $page_id, $frame_id, $post_id);
+        return back()->withInput();
     }
 
     /**

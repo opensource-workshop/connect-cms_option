@@ -9,42 +9,51 @@
 <script src="{{url('/')}}/js/blockly/blocks_compressed.js"></script>
 <script src="{{url('/')}}/js/blockly/javascript_compressed.js"></script>
 <script src="{{url('/')}}/js/blockly/php_compressed.js"></script>
-<script src="{{url('/')}}/js/blockly/msg/ja.js"></script>
 @if (FrameConfig::getConfigValueAndOld($frame_configs, 'dronestudy_language', 'ja_hiragana') == 'ja_hiragana')
-    <script src="{{url('/')}}/js/blockly/drone_block_hiragana.js"></script>
+    <script src="{{url('/')}}/js/blockly/msg/ja_hiragana.js"></script>
+    <script src="{{url('/')}}/js/blockly/msg/ja_hiragana_drone.js"></script>
+{{--
 @elseif (FrameConfig::getConfigValueAndOld($frame_configs, 'dronestudy_language', 'ja_hiragana') == 'ja_hiragana_mix')
-    <script src="{{url('/')}}/js/blockly/drone_block_hiragana_mix.js"></script>
+    <script src="{{url('/')}}/js/blockly/msg/ja_hiragana_mix.js"></script>
+    <script src="{{url('/')}}/js/blockly/msg/ja_hiragana_mix_drone.js"></script>
+--}}
 @else
-    <script src="{{url('/')}}/js/blockly/drone_block.js"></script>
+    <script src="{{url('/')}}/js/blockly/msg/ja.js"></script>
+    <script src="{{url('/')}}/js/blockly/msg/ja_drone.js"></script>
 @endif
+<script src="{{url('/')}}/js/blockly/drone_block.js"></script>
 
 <script type="text/javascript">
     {{-- JavaScript --}}
-    function save_xml() {
-        // ワークスペースをXMLでエクスポートして保存する。
+    // プログラムのXMLを取得する
+    function get_xml_text() {
         var xml = Blockly.Xml.workspaceToDom(workspace);
-        var myBlockXml = Blockly.Xml.domToText(xml);
+        return Blockly.Xml.domToText(xml);
+    }
+    // 実行
+    function drone_run() {
         let el_xml_text = document.getElementById('xml_text');
-        //alert(myBlockXml);
-        //alert(el_xml_text.value);
-        el_xml_text.value = myBlockXml;
-
-
+        el_xml_text.value = get_xml_text();
+        form_dronestudy.action = "{{url('/')}}/redirect/plugin/dronestudies/run/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}";
         form_dronestudy.submit();
     }
+    // ローカルモードへ
     function change_local() {
         location.href="{{url('/')}}/plugin/dronestudies/index/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}";
+    }
+    // プログラムの読み込み
+    function code_load() {
+        form_dronestudy.submit();
     }
 
 </script>
 
 <form action="{{url('/')}}/plugin/dronestudies/remote/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}" method="POST" name="form_dronestudy" class="">
     {{csrf_field()}}
-{{--
-    <input type="hidden" name="dronestudy_id" value="{{$dronestudy->id}}">
-    <input type="hidden" name="post_id" value="{{$dronestudy_post->id}}">
---}}
-
+    <input type="hidden" name="redirect_path" value="{{url('/')}}/plugin/dronestudies/remote/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}">
+    <input type="hidden" name="remote_user_id" value="{{$remote_user_id}}">
+    <input type="hidden" name="xml_text" value="">
+    <input type="hidden" name="mode" value="remote">
     @can("role_article")
         <div class="form-group">
             <div class="card border-info">
@@ -58,7 +67,7 @@
         <select class="form-control" name="remote_user_id" onchange="javascript:submit(this.form);">
             <option value="">対象ユーザ</option>
             @foreach ($remote_users as $remote_user)
-                @if ($remote_user->id == $remote_user_id)
+                @if (old('remote_user_id', $remote_user->id) == $remote_user_id)
                     <option value="{{$remote_user->id}}" selected class="text-white bg-primary">{{$remote_user->name}}</option>
                 @else
                     <option value="{{$remote_user->id}}">{{$remote_user->name}}</option>
@@ -67,45 +76,56 @@
         </select>
     </div>
 
-    <div class="form-group">
-        <label class="control-label">プログラム</label><br />
-        <select class="form-control" name="remote_post_id">
-            <option value="">プログラム</option>
-            @foreach ($posts as $post)
-{{--
-                @if ($post->id == $remote_post_id)
-                    <option value="{{$remote_user->id}}" selected class="text-white bg-primary">{{$remote_user->name}}</option>
-                @else
---}}
-                    <option value="{{$post->id}}">{{$post->title}}</option>
-{{--
-                @endif
---}}
-            @endforeach
-        </select>
-    </div>
+    @if ($remote_user_id)
+        <div class="form-group">
+            <label class="control-label">プログラム</label><br />
+            <select class="form-control" name="remote_post_id" size="5">
+                @foreach ($posts as $post_item)
+                    @if ($post && $post_item->id == $remote_post_id)
+                        <option value="{{$post_item->id}}" selected class="text-white bg-primary">{{$post_item->title}}</option>
+                    @else
+                        <option value="{{$post_item->id}}">{{$post_item->title}}</option>
+                    @endif
+                @endforeach
+            </select>
+        </div>
 
-    @can('posts.create',[[null, 'dronestudies', $buckets]])
-    <div class="form-group">
-        <div class="row">
-            <div class="col-sm-2"></div>
-            <div class="col-sm-8 mx-auto">
-                <div class="text-center">
-                    <button type="button" class="btn btn-primary mr-3" onclick="javascript:drone_run();"><i class="fas fa-check"></i> 実行</button>
+        <div class="form-group">
+            <div class="row">
+                <div class="col-sm-2"></div>
+                <div class="col-sm-8 mx-auto">
+                    <div class="text-center">
+                        <button type="button" class="btn btn-primary mr-3" onclick="javascript:code_load();"><i class="fas fa-check"></i> プログラム呼び出し</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    @endcan
+
+        @if ($post)
+            {{-- プログラム（Blockly） --}}
+            @include('plugins_option.user.dronestudies.default.block_input')
+
+            @can('posts.create',[[null, 'dronestudies', $buckets]])
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-8 mx-auto">
+                        <div class="text-center">
+                            <button type="button" class="btn btn-primary mr-3" onclick="javascript:drone_run();"><i class="fas fa-check"></i> 実行</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endcan
+        @endif
+    @endif
 </form>
 
-{{--
-@if ($dronestudy_post->xml_text)
+@if (!empty($post) && old('xml_text', $post->xml_text))
 <script>
     // ブロック再構築
-    var xml = Blockly.Xml.textToDom('{!!$dronestudy_post->xml_text!!}');
+    var xml = Blockly.Xml.textToDom('{!!old('xml_text', $post->xml_text)!!}');
     workspace.clear();
     Blockly.Xml.domToWorkspace(xml, workspace);
 </script>
 @endif
---}}
