@@ -42,6 +42,10 @@
     }
     // 実行
     function drone_run() {
+
+        var jscode = Blockly.PHP.workspaceToCode(workspace);
+        alert(jscode);
+
         let el_xml_text = document.getElementById('xml_text');
         el_xml_text.value = get_xml_text();
         form_dronestudy.action = "{{url('/')}}/redirect/plugin/dronestudies/run/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}";
@@ -57,7 +61,7 @@
 <form action="" method="POST" name="form_dronestudy" class="">
     {{csrf_field()}}
     <input type="hidden" name="dronestudy_id" value="{{$dronestudy->id}}">
-    <input type="hidden" name="post_id" value="{{$post->id}}">
+    <input type="hidden" name="post_id" value="{{old("post_id", $post->id)}}">
     <input type="hidden" name="redirect_path" value="{{url('/')}}/plugin/dronestudies/index/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}">
     <input type="hidden" name="xml_text" value="">
     <input type="hidden" name="mode" value="local">
@@ -91,7 +95,7 @@
                 </div>
             </div>
             <div class="col-sm-2">
-                @if (!empty($post->id))
+                @if (!empty(old("post_id", $post->id)))
                     <a data-toggle="collapse" href="#collapse{{$post->id}}">
                         <span class="btn btn-danger"><i class="fas fa-trash-alt"></i> <span class="hidden-xs">削除</span></span>
                     </a>
@@ -124,7 +128,7 @@
     <div class="card-body">
         <ol>
         @foreach($posts as $post_item)
-            @if($post->id == $post_item->id)
+            @if(old("post_id", $post->id) == $post_item->id)
                 <li>{{$post_item->title}}［参照中］</li>
             @else
                 <li><a href="{{URL::to('/')}}/plugin/dronestudies/index/{{$page->id}}/{{$frame_id}}/{{$post_item->id}}#frame-{{$frame->id}}">{{$post_item->title}}</a></li>
