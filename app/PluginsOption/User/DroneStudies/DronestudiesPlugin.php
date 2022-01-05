@@ -323,9 +323,8 @@ foreach($json_array as $key => $item) {
         echo $key . "(" . $item . ")\n";
     }
 }
-*/
-
 echo "</pre>";
+*/
 
         // バケツ未設定の場合はバケツ空テンプレートを呼び出す
         if (!isset($this->frame) || !$this->frame->bucket_id) {
@@ -479,6 +478,33 @@ echo "</pre>";
     }
 
     /**
+     *  Tello メソッドクリーニング
+     */
+    private function cleaningMethod($method)
+    {
+        $run_method = [
+            'takeoff' => 'takeoff',
+            'land'    => 'land',
+            'up'      => 'up',
+            'down'    => 'down',
+            'forward' => 'forward',
+            'back'    => 'back',
+            'right'   => 'right',
+            'left'    => 'left',
+            'cw'      => 'cw',
+            'ccw'     => 'ccw',
+            'flip'    => 'flip',
+        ];
+
+        $method_explode = explode(',', trim($method));
+        if (!array_key_exists($method_explode[0], $run_method)) {
+            return "";
+        }
+
+        $return_method = (count($method_explode) > 1) ? $method_explode[0] . "(" . $method_explode[1] . ")" : $method_explode[0] . "()";
+    }
+
+    /**
      *  実行
      */
     public function run($request, $page_id, $frame_id, $post_id = null)
@@ -492,6 +518,9 @@ echo "</pre>";
         }
 
         try {
+            $drone_methods = $request->drone_methods;
+
+
             $tello = new Tello();
 
             $tello->takeoff();

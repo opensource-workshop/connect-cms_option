@@ -27,7 +27,7 @@
     {{-- JavaScript --}}
     // プログラムのXMLを取得する
     function get_xml_text() {
-        var xml = Blockly.Xml.workspaceToDom(workspace);
+        let xml = Blockly.Xml.workspaceToDom(workspace);
         return Blockly.Xml.domToText(xml);
     }
     // ワークスペースをXMLでエクスポートして保存する。
@@ -43,8 +43,11 @@
     // 実行
     function drone_run() {
 
-        var jscode = Blockly.PHP.workspaceToCode(workspace);
-        alert(jscode);
+        let drone_methods = Blockly.PHP.workspaceToCode(workspace);
+        //alert(drone_methods);
+
+        let el_drone_methods = document.getElementById('drone_methods');
+        el_drone_methods.value = drone_methods;
 
         let el_xml_text = document.getElementById('xml_text');
         el_xml_text.value = get_xml_text();
@@ -64,6 +67,7 @@
     <input type="hidden" name="post_id" value="{{old("post_id", $post->id)}}">
     <input type="hidden" name="redirect_path" value="{{url('/')}}/plugin/dronestudies/index/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}">
     <input type="hidden" name="xml_text" value="">
+    <input type="hidden" name="drone_methods" id="drone_methods" value="">
     <input type="hidden" name="mode" value="local">
 
     @can("role_article")
