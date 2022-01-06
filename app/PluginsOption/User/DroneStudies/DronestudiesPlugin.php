@@ -139,193 +139,6 @@ class DronestudiesPlugin extends UserPluginOptionBase
      */
     public function index($request, $page_id, $frame_id, $post_id = null)
     {
-/*
-再帰関数
-[for] => 再帰関数を呼ぶ(&$続きのテキスト全て)
-[for]以外 => メソッド変換＆実行
-[for_end] => 再帰関数を抜ける
-*/
-/*
-$dorone_method = "
-takeoff,
-up,50
-loop,3
-forward,50
-cw,120
-loop_end,
-";
-$dorone_method = str_replace(array("\r\n", "\r", "\n"), "\n", $dorone_method);
-
-function telloRun($methods)
-{
-	foreach($methods as $method) {
-		array_shift($methods);
-
-		list($command, $arg) = explode(",", $method);
-
-		if ($command == 'loop') {
-			return telloRun($methods);
-		} elseif ($command == 'loop_end') {
-			return;
-		} else {
-			echo $command . "\n";
-		}
-	}
-}
-echo "<pre>";
-//static $methods;
-$methods = explode("\n", trim($dorone_method));
-telloRun($methods);
-echo "</pre>";
-*/
-
-/*
-$code_text ="
-takeoff
-up,50
-loop,3
-forward,50
-cw,120
-loop_end
-land
-";
-
-$xmlstr = <<<XML
-<?xml version='1.0' standalone='yes'?>
-<tello>
- <takeoff />
- <up>50</up>
- <loop no="3">
-   <forward>50</forward>
-   <cw>120</cw>
- </loop>
- <movie>
-  <title>PHP: Behind the Parser</title>
- </movie>
-</tello>
-XML;
-$movies = new \SimpleXMLElement($xmlstr);
-
-echo "<pre>";
-var_dump($movies);
-echo "</pre>";
-
-function getNodesInfo($node)
-{
-   if ($node->hasChildNodes())
-   {
-      $subNodes = $node->childNodes;
-      foreach ($subNodes as $subNode)
-      {
-         if (($subNode->nodeType != 3) || 
-            (($subNode->nodeType == 3) &&
-            (strlen(trim($subNode->wholeText))>=1)))   
-         {
-            echo "name: ".$subNode->nodeName.", value: ".$subNode->nodeValue ."\n";
-         }
-echo "attr: " . $subNode->getAttribute("no");
-         getNodesInfo($subNode);
-      }
-   }
-}
-
-$dom_sxe = dom_import_simplexml($movies);
-echo "<pre>";
-getNodesInfo($dom_sxe);
-echo "</pre>";
-*/
-
-/*
-$t = ["takeoff" => ""];
-$d[] = $t;
-$t = ["up" => 50];
-$d[] = $t;
-
-//$t = ["loop" => 3];
-$f = [];
-for ($i = 0; $i < 3; $i++) {
-	$t = ["forward" => 50];
-	$f[] = $t;
-	$t = ["cw" => 120];
-	$f[] = $t;
-}
-$d[] = $f;
-
-$t = ["loop_end" => ""];
-$d[] = $t;
-echo "<pre>";
-print_r($d);
-echo "</pre>";
-*/
-
-/*
-takeoff
-up,50
-loop, 3
-forward, 50
-cw, 120
-loop_end
-
-一度、生成して配列に入れる。
-[
-	"takeoff",
-	"up" => 50,
-
-*/
-
-/*
-$json = '
-{
-	"takeoff": "",
-	"up": 50,
-	"loop": {
-		"count": 3,
-		"loop_items": {
-			"forward": 50,
-			"cw": 120
-        }
-	},
-	"land": ""
-}';
-$json_array = json_decode($json, true);
-echo "<pre>";
-print_r($json_array);
-*/
-/*
-foreach($json_array as $key => $item) {
-    if ($key == "loop") {
-        for($i = 0; $i < $item["count"]; $i++) {
-            foreach($item["loop_items"] as $loop_key => $loop_item) {
-                echo $loop_key . "(" . $loop_item . ")\n";
-            }
-        }
-    } else {
-        echo $key . "(" . $item . ")\n";
-    }
-}
-*/
-/*
-$func_loop = function($loop) {
-    for($i = 0; $i < $loop["count"]; $i++) {
-        foreach($loop["loop_items"] as $loop_key => $loop_item) {
-            if ($loop_key == 'loop') {
-                $func_loop($loop_item);
-            } else {
-                echo $loop_key . "(" . $loop_item . ")\n";
-            }
-        }
-    }
-};
-foreach($json_array as $key => $item) {
-    if ($key == "loop") {
-        $func_loop($item);
-    } else {
-        echo $key . "(" . $item . ")\n";
-    }
-}
-echo "</pre>";
-*/
-
         // バケツ未設定の場合はバケツ空テンプレートを呼び出す
         if (!isset($this->frame) || !$this->frame->bucket_id) {
             // バケツ空テンプレートを呼び出す。
@@ -471,37 +284,52 @@ echo "</pre>";
               'posts' => $posts,
               'post' => $post,
               'remote_post_id' => old("remote_post_id", $request->remote_post_id),
-//            'dronestudy' => $dronestudy,
-//            'dronestudy_post' => $dronestudy_post,
-//            'dronestudy_posts' => $dronestudy_posts,
         ]);
     }
 
     /**
      *  Tello メソッドクリーニング
      */
-    private function cleaningMethod($method)
+    private function cleaningMethod($method_line)
     {
+        // メソッドのリスト
         $run_method = [
-            'takeoff' => 'takeoff',
-            'land'    => 'land',
-            'up'      => 'up',
-            'down'    => 'down',
-            'forward' => 'forward',
-            'back'    => 'back',
-            'right'   => 'right',
-            'left'    => 'left',
-            'cw'      => 'cw',
-            'ccw'     => 'ccw',
-            'flip'    => 'flip',
+            'takeoff' => '',
+            'land'    => '',
+            'up'      => 'numeric',
+            'down'    => 'numeric',
+            'forward' => 'numeric',
+            'back'    => 'numeric',
+            'right'   => 'numeric',
+            'left'    => 'numeric',
+            'cw'      => 'numeric',
+            'ccw'     => 'numeric',
+            'flip'    => 'f,b,r,l',
         ];
 
-        $method_explode = explode(',', trim($method));
+        $method_explode = explode(',', trim($method_line));
+
+        // メソッドが想定のものか確認
         if (!array_key_exists($method_explode[0], $run_method)) {
             return "";
         }
 
-        $return_method = (count($method_explode) > 1) ? $method_explode[0] . "(" . $method_explode[1] . ")" : $method_explode[0] . "()";
+        // 引数が想定のものか確認
+        if ($run_method[$method_explode[0]] == 'numeric') {
+            // 数値形式のチェック
+            if (!is_numeric($method_explode[1])) {
+                return "";
+            }
+        } elseif ($run_method[$method_explode[0]] == 'f,b,r,l') {
+            // 前後左右のチェック
+            if (!in_array($method_explode[1], explode(',', $run_method[$method_explode[0]]))) {
+                return "";
+            }
+        }
+
+        // [メソッド,引数] の配列を返す。
+        $return_method = [$method_explode[0], count($method_explode) > 1 ? $method_explode[1] : ''];
+        return $return_method;
     }
 
     /**
@@ -518,20 +346,21 @@ echo "</pre>";
         }
 
         try {
-            $drone_methods = $request->drone_methods;
-
-
             $tello = new Tello();
-
-            $tello->takeoff();
-
-            sleep(5);
-
-            $tello->land();
+            $drone_methods = $request->drone_methods;
+            $method_lines = explode("\n", trim($drone_methods));
+            foreach ($method_lines as $method_line) {
+                $run_method = $this->cleaningMethod($method_line);
+                //\Log::debug($run_method);
+                $var_method = $run_method[0];
+                $tello->$var_method($run_method[1]);
+                sleep(7);
+            }
         } catch (\Throwable $t) {
             $validator = Validator::make($request->all(), []);
             $error_msg = $t->getMessage();
             $validator->errors()->add('tello_exception', $error_msg);
+            //\Log::debug($t->getTraceAsString());
             return back()->withInput($request->all())->withErrors($validator);
         }
 
