@@ -26,6 +26,10 @@
         <block type="drone_cw"></block>
         <block type="drone_flip"></block>
         <block type="drone_loop"></block>
+        @if ($dronestudy->use_stream)
+            <block type="drone_streamon"></block>
+            <block type="drone_streamoff"></block>
+        @endif
 {{--
         <block type="controls_repeat_ext"></block>
         <block type="math_number">

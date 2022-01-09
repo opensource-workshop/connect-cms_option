@@ -17,9 +17,12 @@ class CreateDronestudiesTable extends Migration
             $table->increments('id');
             $table->integer('bucket_id');
             $table->string('name', 255)->comment('DroneStudy名');
+            $table->integer('command_interval')->nullable()->comment('命令間隔(秒)');
+            $table->integer('use_stream')->nullable()->comment('映像ブロックの使用');
             $table->string('remote_url', 255)->nullable()->comment('リモートURL');
             $table->integer('remote_id')->nullable()->comment('リモートDroneStudy-ID');
             $table->string('secret_code', 255)->nullable()->comment('秘密コード');
+            $table->integer('test_mode')->nullable()->comment('テストモード');
             $table->integer('created_id')->nullable();
             $table->string('created_name', 255)->nullable();
             $table->timestamp('created_at')->nullable();

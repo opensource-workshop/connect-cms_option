@@ -11,36 +11,56 @@ class Tello
     protected $localhost;
     protected $localport;
     protected $socket;
+    protected $test_mode;
 
     protected $recv_strs;
 
-    public function __construct($localhost = '192.168.10.2', $localport = 9000)
+    public function __construct($test_mode = 0, $localhost = '192.168.10.2', $localport = 9000)
     {
         $this->localhost = $localhost;
         $this->localport = $localport;
 
         $this->recv_strs = array();
 
+        $this->test_mode = $test_mode;
+
+        if ($this->test_mode) {
+            return;
+        }
+
         $this->preFlightSetup();
     }
 
     public function getRecvStrs()
     {
+        if ($this->test_mode) {
+            return;
+        }
         return $this->recv_strs;
     }
 
     public function takeoff()
     {
+        if ($this->test_mode) {
+            return;
+        }
         return $this->sendCommand('takeoff');
     }
 
     public function land()
     {
+        if ($this->test_mode) {
+            return;
+        }
         return $this->sendCommand('land');
     }
 
     public function up($height = 20)
     {
+        if ($this->test_mode) {
+            return;
+        }
+
         $height = $this->evaluateDistanceParam($height);
 
         return $this->sendCommand('up ' . $height);
@@ -48,6 +68,10 @@ class Tello
 
     public function down($height = 20)
     {
+        if ($this->test_mode) {
+            return;
+        }
+
         $height = $this->evaluateDistanceParam($height);
 
         return $this->sendCommand('down ' . $height);
@@ -55,6 +79,10 @@ class Tello
 
     public function left($distance = 20)
     {
+        if ($this->test_mode) {
+            return;
+        }
+
         $distance = $this->evaluateDistanceParam($distance);
 
         return $this->sendCommand('left ' . $distance);
@@ -62,6 +90,10 @@ class Tello
 
     public function right($distance = 20)
     {
+        if ($this->test_mode) {
+            return;
+        }
+
         $distance = $this->evaluateDistanceParam($distance);
 
         return $this->sendCommand('right ' . $distance);
@@ -69,6 +101,10 @@ class Tello
 
     public function forward($distance = 20)
     {
+        if ($this->test_mode) {
+            return;
+        }
+
         $distance = $this->evaluateDistanceParam($distance);
 
         return $this->sendCommand('forward ' . $distance);
@@ -76,6 +112,10 @@ class Tello
 
     public function back($distance = 20)
     {
+        if ($this->test_mode) {
+            return;
+        }
+
         $distance = $this->evaluateDistanceParam($distance);
 
         return $this->sendCommand('back ' . $distance);
@@ -83,6 +123,10 @@ class Tello
 
     public function cw($angle = 1)
     {
+        if ($this->test_mode) {
+            return;
+        }
+
         $angle = $this->evaluateAngleParam($angle);
 
         return $this->sendCommand('cw ' . $angle);
@@ -90,6 +134,10 @@ class Tello
 
     public function ccw($angle = 1)
     {
+        if ($this->test_mode) {
+            return;
+        }
+
         $angle = $this->evaluateAngleParam($angle);
 
         return $this->sendCommand('ccw ' . $angle);
@@ -97,12 +145,35 @@ class Tello
 
     public function flip($direction)
     {
+        if ($this->test_mode) {
+            return;
+        }
+
         return $this->sendCommand('flip ' . $direction);
-//        return $this->sendCommand('flip f');
+    }
+
+    public function streamon()
+    {
+        if ($this->test_mode) {
+            return;
+        }
+        return $this->sendCommand('streamon');
+    }
+
+    public function streamoff()
+    {
+        if ($this->test_mode) {
+            return;
+        }
+        return $this->sendCommand('streamoff');
     }
 
     public function setSpeed($speed)
     {
+        if ($this->test_mode) {
+            return;
+        }
+
         $speed = intval($speed);
 
         if ($speed < 1) {
@@ -118,11 +189,19 @@ class Tello
 
     public function readSpeed()
     {
+        if ($this->test_mode) {
+            return;
+        }
+
         return $this->sendCommand('Speed?');
     }
 
     public function readBattery()
     {
+        if ($this->test_mode) {
+            return;
+        }
+
         //return $this->sendCommand('Battery?');
         $this->sendCommand('Battery?');
         return socket_read($this->socket, 1518);
@@ -130,23 +209,26 @@ class Tello
 
     public function readTof()
     {
+        if ($this->test_mode) {
+            return;
+        }
+
         $this->sendCommand('tof?');
         // socket_recv($this->socket, $buf, 1518, 0);
         // echo $buf . "<br />\n";
         //return socket_read($this->socket, 1518);
 
-//$file = 'tello.log';
-//file_put_contents( __DIR__ . "/log/" . $file, "--- " . date("Y-m-d H:i:s") . " readTof()\n", FILE_APPEND);
+        //$file = 'tello.log';
+        //\Log::debug("--- " . date("Y-m-d H:i:s") . " readTof()\n");
 
         $tof = socket_read($this->socket, 1518);
-//file_put_contents( __DIR__ . "/log/" . $file, $tof, FILE_APPEND);
+        //\Log::debug($tof);
 
         for ( $i = 0; $i < 4; $i++ ) {
             if ( $tof == "ok" ) {
-//file_put_contents( __DIR__ . "/log/" . $file, "\n", FILE_APPEND);
                 sleep(3);
                 $tof = socket_read($this->socket, 1518);
-//file_put_contents( __DIR__ . "/log/" . $file, $tof, FILE_APPEND);
+                //\Log::debug($tof);
             }
             else {
                 continue;
@@ -157,11 +239,17 @@ class Tello
 
     public function readTime()
     {
+        if ($this->test_mode) {
+            return;
+        }
         return $this->sendCommand('Time?');
     }
 
     public function preFlightSetup()
     {
+        if ($this->test_mode) {
+            return;
+        }
         $this->socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
         socket_bind($this->socket, $this->localhost, $this->localport);
         socket_connect($this->socket, self::TELLO_IP, self::TELLO_PORT);
@@ -170,6 +258,9 @@ class Tello
 
     public function endFlight()
     {
+        if ($this->test_mode) {
+            return;
+        }
         $land = $this->land();
 
         // if land ok, close socket
@@ -183,7 +274,6 @@ class Tello
 
     protected function sendCommand($command)
     {
-
         $this->recv_strs[] = $command;
 
         return socket_send($this->socket, $command, strlen($command), 0);
@@ -218,5 +308,4 @@ class Tello
 
         return $angle;
     }
-
 }

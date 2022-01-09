@@ -32,6 +32,12 @@
     }
     // 実行
     function drone_run() {
+        let drone_methods = Blockly.PHP.workspaceToCode(workspace);
+        //alert(drone_methods);
+
+        let el_drone_methods = document.getElementById('drone_methods');
+        el_drone_methods.value = drone_methods;
+
         let el_xml_text = document.getElementById('xml_text');
         el_xml_text.value = get_xml_text();
         form_dronestudy.action = "{{url('/')}}/redirect/plugin/dronestudies/run/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}";
@@ -53,7 +59,13 @@
     <input type="hidden" name="redirect_path" value="{{url('/')}}/plugin/dronestudies/remote/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}">
     <input type="hidden" name="remote_user_id" value="{{$remote_user_id}}">
     <input type="hidden" name="xml_text" value="">
+    <input type="hidden" name="drone_methods" id="drone_methods" value="">
     <input type="hidden" name="mode" value="remote">
+
+    @if ($dronestudy->test_mode)
+        <span class="badge badge-pill badge-danger mb-3 blink">テストモード</span>
+    @endif
+
     @can("role_article")
         <div class="form-group">
             <div class="card border-info">

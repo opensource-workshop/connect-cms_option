@@ -79,6 +79,39 @@
             </div>
         </div>
 
+        {{-- ローカルの実行ボタン --}}
+        <div class="form-group row">
+            <label class="{{$frame->getSettingLabelClass(true)}}">ローカルモードの実行ボタン</label>
+            <div class="{{$frame->getSettingInputClass(true)}}">
+                <div class="custom-control custom-radio custom-control-inline">
+                    <input
+                        type="radio"
+                        value="1"
+                        id="dronestudy_local_notrun_1"
+                        name="dronestudy_local_notrun"
+                        class="custom-control-input"
+                        {{ FrameConfig::getConfigValueAndOld($frame_configs, 'dronestudy_local_notrun', '0') === '1' ? 'checked' : '' }}
+                    >
+                    <label class="custom-control-label" for="dronestudy_local_notrun_1">
+                        表示しない
+                    </label>
+                </div>
+                <div class="custom-control custom-radio custom-control-inline">
+                    <input
+                        type="radio"
+                        value="0"
+                        id="dronestudy_local_notrun_0"
+                        name="dronestudy_local_notrun"
+                        class="custom-control-input"
+                        {{ FrameConfig::getConfigValueAndOld($frame_configs, 'dronestudy_local_notrun', '0') === '0' ? 'checked' : '' }}
+                    >
+                    <label class="custom-control-label" for="dronestudy_local_notrun_0">
+                        表示する
+                    </label>
+                </div>
+            </div>
+        </div>
+
         {{-- Submitボタン --}}
         <div class="text-center">
             <a class="btn btn-secondary mr-2" href="{{URL::to($page->permanent_link)}}#frame-{{$frame->id}}">

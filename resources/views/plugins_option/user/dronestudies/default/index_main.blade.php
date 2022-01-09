@@ -9,11 +9,11 @@
 <script src="{{url('/')}}/js/blockly/blocks_compressed.js"></script>
 <script src="{{url('/')}}/js/blockly/javascript_compressed.js"></script>
 <script src="{{url('/')}}/js/blockly/php_compressed.js"></script>
-@if (FrameConfig::getConfigValueAndOld($frame_configs, 'dronestudy_language', 'ja_hiragana') == 'ja_hiragana')
+@if (FrameConfig::getConfigValueAndOld($frame_configs, 'dronestudy_language') == 'ja_hiragana')
     <script src="{{url('/')}}/js/blockly/msg/ja_hiragana.js"></script>
     <script src="{{url('/')}}/js/blockly/msg/ja_hiragana_drone.js"></script>
 {{--
-@elseif (FrameConfig::getConfigValueAndOld($frame_configs, 'dronestudy_language', 'ja_hiragana_mix') == 'ja_hiragana_mix')
+@elseif (FrameConfig::getConfigValueAndOld($frame_configs, 'dronestudy_language') == 'ja_hiragana_mix')
     <script src="{{url('/')}}/js/blockly/msg/ja_hiragana_mix.js"></script>
     <script src="{{url('/')}}/js/blockly/msg/ja_hiragana_mix_drone.js"></script>
 --}}
@@ -70,6 +70,10 @@
     <input type="hidden" name="drone_methods" id="drone_methods" value="">
     <input type="hidden" name="mode" value="local">
 
+    @if ($dronestudy->test_mode)
+        <span class="badge badge-pill badge-danger mb-3 blink">テストモード</span>
+    @endif
+
     @can("role_article")
         <div class="form-group">
             <div class="card border-info">
@@ -78,6 +82,30 @@
         </div>
     @endcan
 
+    @if ($errors && $errors->has('tello_exception'))
+        <div class="card border-danger mb-3">
+            <div class="card-header bg-danger text-white">Drone 実行でエラーが発生しました。</div>
+            <div class="card-body">
+                {{$errors->first('tello_exception')}}
+            </div>
+        </div>
+    @endif
+
+    <!-- フラッシュメッセージ -->
+{{--
+    @if (session('run_result'))
+        <div class="card border-success mb-3">
+            <div class="card-header bg-success text-white">実行内容</div>
+            <div class="card-body">
+                <ul>
+                    @foreach(session('run_result') as $run_result)
+                    <li>{{$run_result}}</li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    @endif
+--}}
     <div class="form-group">
         <label class="control-label">タイトル <label class="badge badge-danger">必須</label></label><br />
         <input type="text" name="title" value="{{old('title', $post->title)}}" class="form-control">
@@ -94,7 +122,9 @@
             <div class="col-sm-8 mx-auto">
                 <div class="text-center">
                     <button type="button" class="btn btn-success mr-3" onclick="javascript:save_xml();"><i class="far fa-save"></i> 保存</button>
-                    <button type="button" class="btn btn-primary mr-3" onclick="javascript:drone_run();"><i class="fas fa-check"></i> 実行</button>
+                    @if (FrameConfig::getConfigValueAndOld($frame_configs, 'dronestudy_local_notrun', '0') == '0')
+                        <button type="button" class="btn btn-primary mr-3" onclick="javascript:drone_run();"><i class="fas fa-check"></i> 実行</button>
+                    @endif
                     <button type="button" class="btn btn-secondary" onclick="location.href='{{URL::to($page->permanent_link)}}#frame-{{$frame->id}}'"><i class="fas fa-times"></i> キャンセル</button>
                 </div>
             </div>

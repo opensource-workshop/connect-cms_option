@@ -32,7 +32,7 @@ class DronestudyApi extends ApiPluginBase
     public function getUsers($request)
     {
         // API 共通チェック
-        $ret = $this->apiCallCheck($request);
+        $ret = $this->apiCallCheck($request, 'Dronestudy');
         if (!empty($ret['code'])) {
             return $this->encodeJson($ret, $request);
         }
@@ -62,7 +62,7 @@ class DronestudyApi extends ApiPluginBase
     public function getPosts($request)
     {
         // API 共通チェック
-        $ret = $this->apiCallCheck($request);
+        $ret = $this->apiCallCheck($request, 'Dronestudy');
         if (!empty($ret['code'])) {
             return $this->encodeJson($ret, $request);
         }
@@ -92,7 +92,7 @@ class DronestudyApi extends ApiPluginBase
     public function getPost($request)
     {
         // API 共通チェック
-        $ret = $this->apiCallCheck($request);
+        $ret = $this->apiCallCheck($request, 'Dronestudy');
         if (!empty($ret['code'])) {
             return $this->encodeJson($ret, $request);
         }

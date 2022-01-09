@@ -4,30 +4,19 @@ namespace App\PluginsOption\User\Dronestudies;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-//use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-//use Illuminate\Validation\Rule;
 
 use App\Models\Common\Buckets;
 use App\Models\Common\Frame;
-//use App\Models\Common\Page;
-//use App\Models\Common\PageRole;
-//use App\Models\Common\Uploads;
 use App\Models\Core\FrameConfig;
 use App\ModelsOption\User\Dronestudies\Dronestudy;
 use App\ModelsOption\User\Dronestudies\DronestudyPost;
-
-//use App\Enums\UploadMaxSize;
-//use App\Enums\CabinetFrameConfig;
-//use App\Enums\CabinetSort;
 
 use App\Rules\CustomValiTextMax;
 
 use App\PluginsOption\User\Dronestudies\Tello;
 
 use App\PluginsOption\User\UserPluginOptionBase;
-
-// use function PHPUnit\Framework\isEmpty;
 
 /**
  * DroneStudy・プラグイン
@@ -168,6 +157,40 @@ class DronestudiesPlugin extends UserPluginOptionBase
     }
 
     /**
+     *  API呼び出し
+     */
+    private function callApi($request_url)
+    {
+        // API 呼び出し
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $request_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $return_json = curl_exec($ch);
+        //\Log::debug(json_decode($return_json, JSON_UNESCAPED_UNICODE));
+
+        // セッションを終了する
+        curl_close($ch);
+
+        // デバッグ用コード
+        // $check_result = json_decode($return_json, true);
+        // Log::debug(print_r($check_result, true));
+
+        // 結果取得(Std オブジェクト)
+        $result_obj = json_decode($return_json);
+
+        // API 結果の判定
+        if (empty($return_json)) {
+            abort(0, 'APIの返答がありませんでした。');
+        } elseif ($result_obj->code == 200) {
+            // OK
+        } else {
+            // 何らかの
+            abort($result_obj->code, $result_obj->message);
+        }
+        return $return_json;
+    }
+
+    /**
      *  ユーザ取得
      */
     private function apiGetUsers($dronestudy)
@@ -178,25 +201,9 @@ class DronestudiesPlugin extends UserPluginOptionBase
         // リモートのURL 組み立て
         $request_url = $dronestudy->remote_url . "/api/dronestudy/getUsers?secret_code=" . $dronestudy->secret_code . "&dronestudy_id=" . $dronestudy->remote_id;
 
-        // API 呼び出し
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $request_url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $return_json = curl_exec($ch);
-        //\Log::debug($request_url);
-        //\Log::debug(json_decode($return_json, JSON_UNESCAPED_UNICODE));
+        // API呼び出し
+        $return_json = $this->callApi($request_url);
 
-        // セッションを終了する
-        curl_close($ch);
-
-        // JSON データを複合化
-        // $check_result = json_decode($return_json, true);
-        // Log::debug(print_r($check_result, true));
-
-        // 権限エラー
-        // if (!$check_result["check"]) {
-        //     abort(403, "認証エラー。");
-        // }
         return json_decode($return_json)->users;
     }
 
@@ -211,14 +218,8 @@ class DronestudiesPlugin extends UserPluginOptionBase
         // リモートのURL 組み立て
         $request_url = $dronestudy->remote_url . "/api/dronestudy/getPosts?secret_code=" . $dronestudy->secret_code . "&dronestudy_id=" . $dronestudy->remote_id . "&user_id=" . $remote_user_id;
 
-        // API 呼び出し
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $request_url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $return_json = curl_exec($ch);
-
-        // セッションを終了する
-        curl_close($ch);
+        // API呼び出し
+        $return_json = $this->callApi($request_url);
 
         return json_decode($return_json)->posts;
     }
@@ -234,14 +235,8 @@ class DronestudiesPlugin extends UserPluginOptionBase
         // リモートのURL 組み立て
         $request_url = $dronestudy->remote_url . "/api/dronestudy/getPost?secret_code=" . $dronestudy->secret_code . "&post_id=" . $remote_post_id;
 
-        // API 呼び出し
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $request_url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $return_json = curl_exec($ch);
-
-        // セッションを終了する
-        curl_close($ch);
+        // API呼び出し
+        $return_json = $this->callApi($request_url);
 
         return json_decode($return_json)->post;
     }
@@ -263,6 +258,11 @@ class DronestudiesPlugin extends UserPluginOptionBase
         // ユーザ取得
         $remote_users = $this->apiGetUsers($dronestudy);
 
+        // API 結果確認
+//        if (empty($return_json) || $return_json->code != 200) {
+//            abort(403, '権限がありません。');
+//        }
+
         if (old("remote_user_id", $request->filled("remote_user_id"))) {
             // ユーザが選択されていたら、プログラム一覧を取得する。
             $posts = $this->apiGetPosts($dronestudy, old("remote_user_id", $request->remote_user_id));
@@ -279,11 +279,12 @@ class DronestudiesPlugin extends UserPluginOptionBase
 
         // 表示テンプレートを呼び出す。
         return $this->view('remote', [
-              'remote_users' => $remote_users,
-              'remote_user_id' => old("remote_user_id", $request->remote_user_id),
-              'posts' => $posts,
-              'post' => $post,
-              'remote_post_id' => old("remote_post_id", $request->remote_post_id),
+            'dronestudy' => $dronestudy,
+            'remote_users' => $remote_users,
+            'remote_user_id' => old("remote_user_id", $request->remote_user_id),
+            'posts' => $posts,
+            'post' => $post,
+            'remote_post_id' => old("remote_post_id", $request->remote_post_id),
         ]);
     }
 
@@ -294,19 +295,20 @@ class DronestudiesPlugin extends UserPluginOptionBase
     {
         // メソッドのリスト
         $run_method = [
-            'takeoff' => '',
-            'land'    => '',
-            'up'      => 'numeric',
-            'down'    => 'numeric',
-            'forward' => 'numeric',
-            'back'    => 'numeric',
-            'right'   => 'numeric',
-            'left'    => 'numeric',
-            'cw'      => 'numeric',
-            'ccw'     => 'numeric',
-            'flip'    => 'f,b,r,l',
+            'takeoff'   => '',
+            'land'      => '',
+            'up'        => 'numeric',
+            'down'      => 'numeric',
+            'forward'   => 'numeric',
+            'back'      => 'numeric',
+            'right'     => 'numeric',
+            'left'      => 'numeric',
+            'cw'        => 'numeric',
+            'ccw'       => 'numeric',
+            'flip'      => 'f,b,r,l',
+            'streamon'  => '',
+            'streamoff' => '',
         ];
-
         $method_explode = explode(',', trim($method_line));
 
         // メソッドが想定のものか確認
@@ -345,24 +347,42 @@ class DronestudiesPlugin extends UserPluginOptionBase
             }
         }
 
+        // バケツデータ取得
+        $dronestudy = $this->getPluginBucket($this->buckets->id);
+
+        // 実行結果を表示するための記録用変数
+        $run_result = array();
+
+        // Tello API でソケット通信した際に、例外が発生する。
         try {
-            $tello = new Tello();
+            $tello = new Tello($dronestudy->test_mode);
+            // ブロックを個別命令に変換したものを受け取る。
             $drone_methods = $request->drone_methods;
             $method_lines = explode("\n", trim($drone_methods));
+            // ブロックを実行
             foreach ($method_lines as $method_line) {
                 $run_method = $this->cleaningMethod($method_line);
                 //\Log::debug($run_method);
+                // 可変関数が独立した変数で定義する必要があるため、配列要素から代入して使用
                 $var_method = $run_method[0];
+                $run_result[] = $var_method . "(" . $run_method[1] . ")";
                 $tello->$var_method($run_method[1]);
-                sleep(7);
+                // テストモードの場合は間隔無し
+                if (!$dronestudy->test_mode) {
+                    sleep($dronestudy->command_interval);
+                }
             }
         } catch (\Throwable $t) {
+            // 画面でエラーが発生したことを伝える。
             $validator = Validator::make($request->all(), []);
             $error_msg = $t->getMessage();
             $validator->errors()->add('tello_exception', $error_msg);
-            //\Log::debug($t->getTraceAsString());
+            //\Log::debug($t->getTraceAsString()); // デバッグ用
             return back()->withInput($request->all())->withErrors($validator);
         }
+
+        // 実行した詳細をフラッシュメッセージで画面に渡す。
+        \Session::flash('run_result', $run_result);
 
         return back()->withInput();
     }
@@ -420,9 +440,19 @@ class DronestudiesPlugin extends UserPluginOptionBase
                 'required',
                 'max:255'
             ],
+            'command_interval' => [
+                'required',
+                'numeric'
+            ],
+            'remote_id' => [
+                'nullable',
+                'numeric'
+            ],
         ]);
         $validator->setAttributeNames([
             'name' => 'DroneStudy名',
+            'command_interval' => '命令間隔（秒）',
+            'remote_id' => 'リモートID',
         ]);
 
         return $validator;
@@ -468,9 +498,12 @@ class DronestudiesPlugin extends UserPluginOptionBase
         // プラグインバケツにデータを設定して保存
         $dronestudy = $this->getPluginBucket($bucket->id);
         $dronestudy->name = $request->name;
+        $dronestudy->command_interval = $request->command_interval;
+        $dronestudy->use_stream = $request->use_stream;
         $dronestudy->remote_url = $request->remote_url;
         $dronestudy->remote_id = $request->remote_id;
         $dronestudy->secret_code = $request->secret_code;
+        $dronestudy->test_mode = $request->test_mode;
         $dronestudy->save();
 
         return $bucket->id;
@@ -640,6 +673,10 @@ class DronestudiesPlugin extends UserPluginOptionBase
         FrameConfig::updateOrCreate(
             ['frame_id' => $frame_id, 'name' => 'dronestudy_language'],
             ['value' => $request->dronestudy_language]
+        );
+        FrameConfig::updateOrCreate(
+            ['frame_id' => $frame_id, 'name' => 'dronestudy_local_notrun'],
+            ['value' => $request->dronestudy_local_notrun]
         );
     }
 }
