@@ -40,11 +40,137 @@
     @endif
         {{ csrf_field() }}
 
+        @if ($dronestudy->bucket_id)
+            <div class="form-group row">
+                <label class="{{$frame->getSettingLabelClass()}}">ローカルバケツID</label>
+                <div class="{{$frame->getSettingInputClass(true)}}">
+                    {{$dronestudy->bucket_id}}
+                    <small class="text-muted pl-2">（リモート設置する際にリモートバケツIDに登録する値）</small>
+                </div>
+            </div>
+        @endif
+
         <div class="form-group row">
             <label class="{{$frame->getSettingLabelClass()}}">DroneStudy名 <label class="badge badge-danger">必須</label></label>
             <div class="{{$frame->getSettingInputClass()}}">
                 <input type="text" name="name" value="{{old('name', $dronestudy->name)}}" class="form-control @if ($errors && $errors->has('name')) border-danger @endif">
                 @include('plugins.common.errors_inline', ['name' => 'name'])
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="{{$frame->getSettingLabelClass()}}">命令間隔（秒）</label>
+            <div class="{{$frame->getSettingInputClass()}}">
+                <input type="text" name="command_interval" value="{{old('command_interval', $dronestudy->command_interval)}}" class="form-control @if ($errors && $errors->has('command_interval')) border-danger @endif">
+                @include('plugins.common.errors_inline', ['name' => 'command_interval'])
+                <small class="text-muted pl-2">※ 通常は5～7で設定します。</small>
+            </div>
+        </div>
+
+        {{-- 映像使用 --}}
+        <div class="form-group row mb-0">
+            <label class="{{$frame->getSettingLabelClass()}} py-0">映像使用</label>
+            <div class="{{$frame->getSettingInputClass(true)}}">
+                <div class="custom-control custom-radio custom-control-inline">
+                    <input
+                        type="radio"
+                        value="0"
+                        id="use_stream_0"
+                        name="use_stream"
+                        class="custom-control-input"
+                        @if (empty($dronestudy->use_stream)) checked @endif
+                    >
+                    <label class="custom-control-label" for="use_stream_0">
+                        使用しない
+                    </label>
+                </div>
+                <div class="custom-control custom-radio custom-control-inline">
+                    <input
+                        type="radio"
+                        value="1"
+                        id="use_stream_1"
+                        name="use_stream"
+                        class="custom-control-input"
+                        @if ($dronestudy->use_stream == 1) checked @endif
+                    >
+                    <label class="custom-control-label" for="use_stream_1">
+                        使用する
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="{{$frame->getSettingLabelClass(true)}} py-0 my-0"></label>
+            <div class="{{$frame->getSettingInputClass(true)}}">
+                <small class="text-muted pl-2">※ FFmpeg の準備及び実行が必要です。（詳しくはマニュアルを参照してください。）</small>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="{{$frame->getSettingLabelClass()}}">リモートサイトURL</label>
+            <div class="{{$frame->getSettingInputClass()}}">
+                <input type="text" name="remote_url" value="{{old('remote_url', $dronestudy->remote_url)}}" class="form-control @if ($errors && $errors->has('remote_url')) border-danger @endif">
+                @include('plugins.common.errors_inline', ['name' => 'remote_url'])
+                <small class="text-muted pl-2">※ リモート側のConnect-CMSのURL。最後のスラッシュは不要。例：https://example.com</small>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="{{$frame->getSettingLabelClass()}}">リモートバケツID</label>
+            <div class="{{$frame->getSettingInputClass()}}">
+                <input type="text" name="remote_id" value="{{old('remote_id', $dronestudy->remote_id)}}" class="form-control @if ($errors && $errors->has('remote_id')) border-danger @endif">
+                @include('plugins.common.errors_inline', ['name' => 'remote_id'])
+                <small class="text-muted pl-2">※ リモート側のConnect-CMS、DroneStudy の設定変更で表示されるローカルバケツID</small>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="{{$frame->getSettingLabelClass()}}">リモート秘密コード</label>
+            <div class="{{$frame->getSettingInputClass()}}">
+                <input type="text" name="secret_code" value="{{old('secret_code', $dronestudy->secret_code)}}" class="form-control @if ($errors && $errors->has('secret_code')) border-danger @endif">
+                @include('plugins.common.errors_inline', ['name' => 'secret_code'])
+                <small class="text-muted pl-2">※ リモート側のConnect-CMS 管理画面のAPI管理で設定する秘密コード</small>
+            </div>
+        </div>
+
+        {{-- テストモード --}}
+        <div class="form-group row mb-0">
+            <label class="{{$frame->getSettingLabelClass()}} py-0">テストモード</label>
+            <div class="{{$frame->getSettingInputClass(true)}}">
+                <div class="custom-control custom-radio custom-control-inline">
+                    <input
+                        type="radio"
+                        value="0"
+                        id="test_mode_0"
+                        name="test_mode"
+                        class="custom-control-input"
+                        @if (empty($dronestudy->test_mode)) checked @endif
+                    >
+                    <label class="custom-control-label" for="test_mode_0">
+                        OFF
+                    </label>
+                </div>
+                <div class="custom-control custom-radio custom-control-inline">
+                    <input
+                        type="radio"
+                        value="1"
+                        id="test_mode_1"
+                        name="test_mode"
+                        class="custom-control-input"
+                        @if ($dronestudy->test_mode == 1) checked @endif
+                    >
+                    <label class="custom-control-label" for="test_mode_1">
+                        ON
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="{{$frame->getSettingLabelClass(true)}} py-0 my-0"></label>
+            <div class="{{$frame->getSettingInputClass(true)}}">
+                <small class="text-muted pl-2">※ テストモードONの場合は、Drone に接続しません。</small>
             </div>
         </div>
 
