@@ -42,10 +42,10 @@
 
         @if ($dronestudy->bucket_id)
             <div class="form-group row">
-                <label class="{{$frame->getSettingLabelClass()}}">ローカルバケツID</label>
+                <label class="{{$frame->getSettingLabelClass()}}">ローカルDroneStudy-ID</label>
                 <div class="{{$frame->getSettingInputClass(true)}}">
-                    {{$dronestudy->bucket_id}}
-                    <small class="text-muted pl-2">（リモート設置する際にリモートバケツIDに登録する値）</small>
+                    {{$dronestudy->id}}
+                    <small class="text-muted pl-2">（リモート設置する際にリモートDroneStudy-IDに登録する値）</small>
                 </div>
             </div>
         @endif
@@ -117,7 +117,7 @@
         </div>
 
         <div class="form-group row">
-            <label class="{{$frame->getSettingLabelClass()}}">リモートバケツID</label>
+            <label class="{{$frame->getSettingLabelClass()}}">リモートDroneStudy-ID</label>
             <div class="{{$frame->getSettingInputClass()}}">
                 <input type="text" name="remote_id" value="{{old('remote_id', $dronestudy->remote_id)}}" class="form-control @if ($errors && $errors->has('remote_id')) border-danger @endif">
                 @include('plugins.common.errors_inline', ['name' => 'remote_id'])
