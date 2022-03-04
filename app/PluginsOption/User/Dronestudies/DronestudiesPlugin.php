@@ -519,10 +519,10 @@ class DronestudiesPlugin extends UserPluginOptionBase
     {
         // 項目のエラーチェック
         $validator = Validator::make($request->all(), [
-            'title' => [
-                'required',
-                'max:255'
-            ],
+            //'title' => [
+            //    'required',
+            //    'max:255'
+            //],
             'xml_text' => [
                 'required',
                 new CustomValiTextMax()
@@ -558,12 +558,26 @@ class DronestudiesPlugin extends UserPluginOptionBase
             ['id' => $request->post_id],
             [
                 'dronestudy_id' => $dronestudy->id,
-                'title' => $request->title,
+                'title' => empty($request->title) ? '[無題]' : $request->title,
                 'xml_text' => $request->xml_text,
             ],
         );
         // 登録後はリダイレクトして編集ページを開く。
         return new Collection(['redirect_path' => url('/') . "/plugin/dronestudies/index/" . $page_id . "/" . $frame_id . "/" . $post->id . "#frame-" . $frame_id]);
+    }
+
+    /**
+     * 削除処理
+     */
+    public function delete($request, $page_id, $frame_id, $post_id)
+    {
+        // id がある場合、データを削除
+        if ($post_id) {
+            DronestudyPost::where('id', $post_id)->delete();
+        }
+        // 登録後はリダイレクトして一覧ページを開く。
+        return new Collection(['redirect_path' => url('/') . "/plugin/dronestudies/index/" . $page_id . "/" . $frame_id . "#frame-" . $frame_id]);
+        return;
     }
 
     /**

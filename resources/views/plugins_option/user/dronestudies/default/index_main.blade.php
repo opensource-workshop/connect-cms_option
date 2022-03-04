@@ -147,7 +147,7 @@
 
             <div class="text-center">
                 {{-- 削除ボタン --}}
-                <form action="{{url('/')}}/plugin/dronestudies/deletecode/{{$page->id}}/{{$frame_id}}/{{$post->id}}#frame-{{$frame->id}}" method="POST">
+                <form action="{{url('/')}}/redirect/plugin/dronestudies/delete/{{$page->id}}/{{$frame_id}}/{{$post->id}}#frame-{{$frame->id}}" method="POST">
                     {{csrf_field()}}
                     <button type="submit" class="btn btn-danger" onclick="javascript:return confirm('プログラムを削除します。\nよろしいですか？')"><i class="fas fa-check"></i> 本当に削除する</button>
                 </form>
