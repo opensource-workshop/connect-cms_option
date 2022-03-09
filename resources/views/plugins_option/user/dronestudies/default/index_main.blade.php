@@ -32,6 +32,22 @@
     }
     // ワークスペースをXMLでエクスポートして保存する。
     function save_xml() {
+
+        // 最大ブロック数のチェック
+        @if ($dronestudy->max_block_count > 0)
+        let drone_methods = Blockly.PHP.workspaceToCode(workspace);
+        let drone_methods_trim = drone_methods.trim();
+        let split_drone_methods = drone_methods_trim.split(/\n/);
+        if (Array.isArray(split_drone_methods)) {
+            method_count = split_drone_methods.length;
+            // alert(method_count);
+            if (method_count > {{$dronestudy->max_block_count}}) {
+                alert("最大ブロック数を超えています。\n保存できません。\nブロック数は{{$dronestudy->max_block_count}}以下にしてください。");
+                return false;
+            }
+        }
+        @endif
+
         // POSTするためのinput タグに設定する。
         let el_xml_text = document.getElementById('xml_text');
         el_xml_text.value = get_xml_text();
@@ -61,7 +77,7 @@
 
 </script>
 
-<form action="" method="POST" name="form_dronestudy" class="">
+<form action="" method="POST" name="form_dronestudy" class="" onsubmit="return false;">
     {{csrf_field()}}
     <input type="hidden" name="dronestudy_id" value="{{$dronestudy->id}}">
     <input type="hidden" name="post_id" value="{{old("post_id", $post->id)}}">
@@ -81,6 +97,13 @@
             </div>
         </div>
     @endcan
+
+    @if ($dronestudy->max_block_count > 0)
+        <div class="alert alert-info">
+            <i class="fas fa-exclamation-circle"></i>
+            ブロックは {{$dronestudy->max_block_count}} 個以下で作ってください。
+        </div>
+    @endif
 
     @if ($errors && $errors->has('tello_exception'))
         <div class="card border-danger mb-3">

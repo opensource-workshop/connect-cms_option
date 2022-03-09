@@ -448,11 +448,16 @@ class DronestudiesPlugin extends UserPluginOptionBase
                 'nullable',
                 'numeric'
             ],
+            'max_block_count' => [
+                'nullable',
+                'numeric'
+            ],
         ]);
         $validator->setAttributeNames([
             'name' => 'DroneStudy名',
             'command_interval' => '命令間隔（秒）',
             'remote_id' => 'リモートID',
+            'max_block_count' => '最大ブロック数',
         ]);
 
         return $validator;
@@ -500,6 +505,7 @@ class DronestudiesPlugin extends UserPluginOptionBase
         $dronestudy->name = $request->name;
         $dronestudy->command_interval = $request->command_interval;
         $dronestudy->use_stream = $request->use_stream;
+        $dronestudy->max_block_count = empty($request->max_block_count) ? 0 : $request->max_block_count;
         $dronestudy->remote_url = $request->remote_url;
         $dronestudy->remote_id = $request->remote_id;
         $dronestudy->secret_code = $request->secret_code;
@@ -517,6 +523,7 @@ class DronestudiesPlugin extends UserPluginOptionBase
      */
     private function getPostValidator($request)
     {
+//\Log::debug($request->xml_text);
         // 項目のエラーチェック
         $validator = Validator::make($request->all(), [
             //'title' => [
@@ -552,13 +559,20 @@ class DronestudiesPlugin extends UserPluginOptionBase
             return back()->withErrors($validator)->withInput();
         }
 
+        // タイトルがすでにある場合は、「タイトル」＋「-」として、- を一つ追加する。
+        $title = empty($request->title) ? '[無題]' : $request->title;
+        $check_title = DronestudyPost::where('created_id', Auth::user()->id)->where('title', $title)->where('id', '<>', $request->post_id)->first();
+        if (!empty($check_title)) {
+            $title = $title . "-";
+        }
+
         // ブロックのXML をそのまま保存する。
         $dronestudy = $this->getPluginBucket($this->buckets->id);
         $post = DronestudyPost::updateOrCreate(
             ['id' => $request->post_id],
             [
                 'dronestudy_id' => $dronestudy->id,
-                'title' => empty($request->title) ? '[無題]' : $request->title,
+                'title' => $title,
                 'xml_text' => $request->xml_text,
             ],
         );
