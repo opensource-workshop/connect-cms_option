@@ -108,7 +108,7 @@
         </div>
 
         <div class="form-group row">
-            <label class="{{$frame->getSettingLabelClass()}}">最大ブロック数</label>
+            <label class="{{$frame->getSettingLabelClass()}}">最大ブロック実行数</label>
             <div class="{{$frame->getSettingInputClass()}}">
                 <input type="text" name="max_block_count" value="{{old('max_block_count', $dronestudy->max_block_count, 0)}}" class="form-control @if ($errors && $errors->has('max_block_count')) border-danger @endif">
                 @include('plugins.common.errors_inline', ['name' => 'max_block_count'])

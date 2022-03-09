@@ -15,7 +15,7 @@ class AddMaxblockcountToDronestudies extends Migration
     {
         Schema::table('dronestudies', function (Blueprint $table) {
             //
-            $table->integer('max_block_count')->default(0)->comment('最大ブロック数')->after('use_stream');
+            $table->integer('max_block_count')->default(0)->comment('最大ブロック実行数')->after('use_stream');
         });
     }
 

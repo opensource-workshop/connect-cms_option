@@ -33,7 +33,7 @@
     // ワークスペースをXMLでエクスポートして保存する。
     function save_xml() {
 
-        // 最大ブロック数のチェック
+        // 最大ブロック実行数のチェック
         @if ($dronestudy->max_block_count > 0)
         let drone_methods = Blockly.PHP.workspaceToCode(workspace);
         let drone_methods_trim = drone_methods.trim();
@@ -42,7 +42,7 @@
             method_count = split_drone_methods.length;
             // alert(method_count);
             if (method_count > {{$dronestudy->max_block_count}}) {
-                alert("最大ブロック数を超えています。\n保存できません。\nブロック数は{{$dronestudy->max_block_count}}以下にしてください。");
+                alert("ブロックの実行数が " +  method_count + " 個になります。\n最大ブロック実行数を超えています。\n保存できません。\nブロック実行数は{{$dronestudy->max_block_count}}以下にしてください。");
                 return false;
             }
         }
@@ -101,7 +101,8 @@
     @if ($dronestudy->max_block_count > 0)
         <div class="alert alert-info">
             <i class="fas fa-exclamation-circle"></i>
-            ブロックは {{$dronestudy->max_block_count}} 個以下で作ってください。
+            ブロックの実行数は {{$dronestudy->max_block_count}} 個以下になるように作ってください。<br />
+            （繰り返し自体は実行数に含みません。繰り返しの中は繰り返す分、実行数になります。）
         </div>
     @endif
 
