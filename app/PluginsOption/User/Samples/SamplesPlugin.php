@@ -86,7 +86,13 @@ class SamplesPlugin extends UserPluginOptionBase
         }
 
         // 指定された記事を取得
-        $this->post = SamplePost::firstOrNew(['id' => $id]);
+        $this->post = SamplePost::whereExists(function ($query) {
+            $query->select(\DB::raw(1))
+                  ->from('samples')
+                  ->whereRaw('sample_posts.sample_id = samples.id')
+                  ->where('samples.bucket_id', $this->frame->bucket_id);
+        })
+        ->firstOrNew(['id' => $id]);
 
         return $this->post;
     }
@@ -135,6 +141,11 @@ class SamplesPlugin extends UserPluginOptionBase
     {
         // 記事取得
         $post = $this->getPost($post_id);
+
+        // 記事を取得できなかったら403
+        if (empty($post->sample_id)) {
+            return $this->viewError("403_inframe", null, '詳細取得NG');
+        }
 
         // 編集画面を呼び出す。
         return $this->view('edit', [
@@ -204,6 +215,11 @@ class SamplesPlugin extends UserPluginOptionBase
     {
         // 記事取得
         $post = $this->getPost($post_id);
+
+        // 記事を取得できなかったら403
+        if (empty($post->sample_id)) {
+            return $this->viewError("403_inframe", null, '詳細取得NG');
+        }
 
         // 編集画面を呼び出す。
         return $this->view('show', [
