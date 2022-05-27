@@ -87,7 +87,7 @@ class SpeechstudiesPlugin extends UserPluginOptionBase
         // 送信データを指定
         $data = [
             'api_key' => config('connect.SPEECH_API_KEY'),
-            'text'    => $request->text,
+            'text'    => str_replace(array("\r\n", "\r", "\n"), '', $request->text),
             'voiceId' => $request->voiceId,
             'rate'    => $request->rate,
         ];

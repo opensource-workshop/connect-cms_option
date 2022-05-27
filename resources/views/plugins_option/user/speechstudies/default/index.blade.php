@@ -11,7 +11,10 @@
 
     <div>
         <label for="textInput" class="form-label">テキスト</label>
+{{--
         <input type="text" class="form-control" id="textInput_{{$frame->id}}" value="テスト">
+--}}
+        <textarea class="form-control" id="textInput_{{$frame->id}}">テスト</textarea>
     </div>
 
     <div>
