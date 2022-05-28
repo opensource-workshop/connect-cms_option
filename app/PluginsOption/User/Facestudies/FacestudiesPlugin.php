@@ -1,27 +1,30 @@
 <?php
 
-namespace App\PluginsOption\User\Speechstudies;
+namespace App\PluginsOption\User\Facestudies;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 
 use App\Models\Common\Buckets;
 use App\Models\Common\Frame;
+use App\Models\Core\Configs;
+
+use Intervention\Image\Facades\Image;
 
 use App\PluginsOption\User\UserPluginOptionBase;
 
 /**
- * SpeechStydy プラグイン
+ * FaceStydy プラグイン
  *
  * DB 定義コマンド
  * DBなし
  *
  * @author 永原　篤 <nagahara@opensource-workshop.jp>
  * @copyright OpenSource-WorkShop Co.,Ltd. All Rights Reserved
- * @category SpeechStydy プラグイン
+ * @category FaceStudy プラグイン
  * @package Controller
  */
-class SpeechstudiesPlugin extends UserPluginOptionBase
+class FacestudiesPlugin extends UserPluginOptionBase
 {
     /* オブジェクト変数 */
 
@@ -35,7 +38,7 @@ class SpeechstudiesPlugin extends UserPluginOptionBase
         // 標準関数以外で画面などから呼ばれる関数の定義
         $functions = array();
         $functions['get']  = ['index'];
-        $functions['post']  = ['speech'];
+        $functions['post']  = ['face'];
         return $functions;
     }
 
@@ -67,25 +70,61 @@ class SpeechstudiesPlugin extends UserPluginOptionBase
     }
 
     /**
-     * 音声合成
+     * 顔認識
      * 外部サービスの呼び出し
      */
-    public function speech($request, $page_id, $frame_id)
+    public function face($request, $page_id, $frame_id)
     {
+        // ファイル受け取り(リクエスト内)
+        if (!$request->hasFile('photo') || !$request->file('photo')->isValid()) {
+            return array('location' => 'error');
+        }
+        $image_file = $request->file('photo');
+
+        // GDのリサイズでメモリを多く使うため、memory_limitセット
+        $configs = Configs::getSharedConfigs();
+        $memory_limit_for_image_resize = Configs::getConfigsValue($configs, 'memory_limit_for_image_resize', '256M');
+        ini_set('memory_limit', $memory_limit_for_image_resize);
+
+        // ファイルのリサイズ(メモリ内)
+        $image = Image::make($image_file);
+
+        // リサイズ
+        $resize_width = null;
+        $resize_height = null;
+        if ($image->width() > $image->height()) {
+            $resize_width = $request->image_size;
+        } else {
+            $resize_height = $request->image_size;
+        }
+
+        $image = $image->resize($resize_width, $resize_height, function ($constraint) {
+            // 横幅を指定する。高さは自動調整
+            $constraint->aspectRatio();
+
+            // 小さい画像が大きくなってぼやけるのを防止
+            $constraint->upsize();
+        });
+
+        // 画像の回転対応: orientate()
+        $image = $image->orientate();
+
         // cURLセッションを初期化する
         $ch = curl_init();
 
         // 送信データを指定
         $data = [
-            'api_key' => config('connect.SPEECH_API_KEY'),
-            'text'    => str_replace(array("\r\n", "\r", "\n"), '', $request->text),
-            'voiceId' => $request->voiceId,
-            'rate'    => $request->rate,
+            'api_key' => config('connect.FACE_AI_API_KEY'),
+//            'mosaic_fineness' => $request->mosaic_fineness,
+            'method' => $request->method,
+            'mosaic_fineness' => 'medium',
+            'photo' => base64_encode($image->stream()),
+            'extension' => $request->file('photo')->getClientOriginalExtension(),
         ];
         //\Log::debug($data);
 
         // API URL取得
-        $api_url = config('connect.SPEECH_API_URL');
+        $api_url = config('connect.FACE_AI_API_URL');
 
         // URLとオプションを指定する
         curl_setopt($ch, CURLOPT_URL, $api_url);
@@ -100,7 +139,7 @@ class SpeechstudiesPlugin extends UserPluginOptionBase
         // セッションを終了する
         curl_close($ch);
 
-        // ファイルデータをdecode して復元、保存
+        // ファイルデータをdecode して復元
         $res_base64 = json_decode($res, true);
         //\Log::debug($res_base64);
 
@@ -111,7 +150,8 @@ class SpeechstudiesPlugin extends UserPluginOptionBase
         }
 
         // ファイル返却
-        echo base64_decode($res_base64['AudioStream']);
+//        echo base64_decode($res_base64['mosaic_photo']);
+        echo $res_base64['mosaic_photo'];
 
         // 終了
         exit;
