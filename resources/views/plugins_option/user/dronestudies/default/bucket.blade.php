@@ -80,7 +80,7 @@
                         class="custom-control-input"
                         @if (empty($dronestudy->use_stream)) checked @endif
                     >
-                    <label class="custom-control-label" for="use_stream_0">
+                    <label class="custom-control-label" for="use_stream_0" id="label_use_stream_0">
                         使用しない
                     </label>
                 </div>
@@ -93,7 +93,7 @@
                         class="custom-control-input"
                         @if ($dronestudy->use_stream == 1) checked @endif
                     >
-                    <label class="custom-control-label" for="use_stream_1">
+                    <label class="custom-control-label" for="use_stream_1" id="label_use_stream_1">
                         使用する
                     </label>
                 </div>
