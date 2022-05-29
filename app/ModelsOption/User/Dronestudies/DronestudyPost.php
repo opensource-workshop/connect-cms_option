@@ -12,5 +12,5 @@ class DronestudyPost extends Model
     use UserableNohistory;
 
     // 更新する項目の定義
-    protected $fillable = ['id', 'dronestudy_id', 'title', 'xml_text', 'status'];
+    protected $fillable = ['id', 'dronestudy_id', 'title', 'xml_text', 'status', 'created_id', 'created_name'];
 }
