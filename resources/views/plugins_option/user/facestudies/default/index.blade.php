@@ -20,20 +20,24 @@
         <label for="textInput" class="form-label mt-3">処理</label><br>
         <div class="custom-control custom-radio custom-control-inline">
             <input type="radio" id="method_mosaic_{{$frame->id}}" name="method_{{$frame->id}}" class="custom-control-input" value="rectangle" checked>
-            <label class="custom-control-label" for="method_mosaic_{{$frame->id}}">顔認識</label>
+            <label class="custom-control-label" for="method_mosaic_{{$frame->id}}" id="label_method_mosaic_{{$frame->id}}">顔認識</label>
         </div>
         <div class="custom-control custom-radio custom-control-inline">
             <input type="radio" id="method_eye_rectangle_{{$frame->id}}" name="method_{{$frame->id}}" class="custom-control-input" value="eye_rectangle">
-            <label class="custom-control-label" for="method_eye_rectangle_{{$frame->id}}">目認識</label>
+            <label class="custom-control-label" for="method_eye_rectangle_{{$frame->id}}" id="label_method_eye_rectangle_{{$frame->id}}">目認識</label>
         </div>
         <div class="custom-control custom-radio custom-control-inline">
             <input type="radio" id="method_smile_{{$frame->id}}" name="method_{{$frame->id}}" class="custom-control-input" value="smile">
-            <label class="custom-control-label" for="method_smile_{{$frame->id}}">笑顔認識</label>
+            <label class="custom-control-label" for="method_smile_{{$frame->id}}" id="label_method_smile_{{$frame->id}}">笑顔認識</label>
+        </div>
+        <div class="custom-control custom-radio custom-control-inline">
+            <input type="radio" id="method_animeface_{{$frame->id}}" name="method_{{$frame->id}}" class="custom-control-input" value="animeface">
+            <label class="custom-control-label" for="method_animeface_{{$frame->id}}" id="label_method_animeface_{{$frame->id}}">アイドルアニメの顔認識</label>
         </div>
     </div>
 
     <div class="mt-3">
-        <input type="submit" class="btn btn-primary" value="アップロード＆判定" id="faceSubmit_{{$frame->id}}" onClick="faceSubmit_{{$frame->id}}();">
+        <input type="submit" class="btn btn-primary" value="アップロード＆判定" id="faceSubmit_{{$frame->id}}">
     </div>
 
     <div class="mt-3">
@@ -60,7 +64,7 @@
     }
 
 
-    // (3) リクエスト（要求）を送信
+    // リクエスト（要求）を送信
     $('#faceSubmit_{{$frame->id}}').on('click', function () {
 
         var tokens = document.getElementsByName("csrf-token");
@@ -86,45 +90,6 @@
            // 失敗時の処理
         });
     });
-
-
-    function faceSubmit_{{$frame->id}}() {
-        // (1) XMLHttpRequestオブジェクトを作成
-//        const xhr = new XMLHttpRequest();
-
-        // (2) 取得するファイルの設定
-//        xhr.open('post', "{{url('/')}}/redirect/plugin/facestudies/face/{{$page->id}}/{{$frame_id}}");
-
-        // サーバに対して解析方法を指定する
-//        xhr.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
-
-//        xhr.responseType = 'blob';
-
-
-
-
-//        var image_size = 400;
-
-//        var data = { upfile: $upfile.prop('files')[0], _token: tokens[0].content};
-//        xhr.send(EncodeHTMLForm_{{$frame->id}}(data));
-
-//        xhr.onreadystatechange = function() {
-
-            // (4) 通信が正常に完了したか確認
-//            if( xhr.readyState === 4 && xhr.status === 200) {
-
-                // (5) 画像ファイルを表示
-/*
-                const speech = document.getElementById("speech_{{$frame->id}}");
-                const speechSource = document.getElementById("speechSource_{{$frame->id}}");
-                speechSource.src = URL.createObjectURL(this.response);
-
-                speech.load();
-                speech.play();
-*/
-//            }
-//        };
-    }
     </script>
 
 @endsection
