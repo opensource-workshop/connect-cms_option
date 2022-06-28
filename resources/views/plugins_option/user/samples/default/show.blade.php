@@ -15,7 +15,7 @@
     <div class="text-right m-1">
         <div class="btn-group">
             <a href="{{url('/')}}/plugin/samples/edit/{{$page->id}}/{{$frame_id}}/{{$post->id}}#frame-{{$frame->id}}" class="btn btn-success btn-sm">
-                <i class="far fa-edit"></i> <span class="hidden-xs">編集</span>
+                <i class="far fa-edit"></i> <span class="d-none d-sm-inline">編集</span>
             </a>
         </div>
     </div>
@@ -26,7 +26,7 @@
 <nav class="row">
     <div class="col-12 text-center mt-3">
         <a href="{{url('/')}}{{$page->getLinkUrl()}}#frame-{{$frame->id}}" class="btn btn-info">
-            <i class="fas fa-list"></i> <span class="hidden-xs">{{__('messages.to_list')}}</span>
+            <i class="fas fa-list"></i> <span class="d-none d-sm-inline">{{__('messages.to_list')}}</span>
         </a>
     </div>
 </nav>
