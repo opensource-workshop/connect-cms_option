@@ -141,8 +141,16 @@ class DronestudiesPlugin extends UserPluginOptionBase
         if (Auth::check()) {
             // 編集対象のプログラム
             $post = $this->getPost($post_id);
+
+            // 対象のDroneStudy
+            $dronestudy = Dronestudy::where('dronestudies.bucket_id', $this->frame->bucket_id)->first();
+
             // ユーザのプログラム一覧
-            $posts = DronestudyPost::where('created_id', Auth::user()->id)->get();
+            $posts = DronestudyPost::select('dronestudy_posts.*')
+                                   ->where('dronestudy_id', $dronestudy->id)
+                                   ->where('created_id', Auth::user()->id)
+                                   ->get();
+
         } else {
             $post = new DronestudyPost();
             $posts = new Collection();
