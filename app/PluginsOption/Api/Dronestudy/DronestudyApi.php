@@ -41,6 +41,7 @@ class DronestudyApi extends ApiPluginBase
         $users = User::select('users.id', 'users.name')
                      ->join('dronestudy_posts', 'dronestudy_posts.created_id', '=', 'users.id')
                      ->where('dronestudy_posts.dronestudy_id', $request->dronestudy_id)
+                     ->where('users.status', 0)
                      ->groupBy('users.id', 'users.name')
                      ->get();
         if (empty($user)) {
