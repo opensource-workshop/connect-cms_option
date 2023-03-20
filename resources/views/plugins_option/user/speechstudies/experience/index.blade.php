@@ -21,8 +21,16 @@
             <label class="custom-control-label" for="VoiceId2_{{$frame->id}}">Takumi</label>
         </div>
         <div class="custom-control custom-radio custom-control-inline">
-            <input type="radio" id="VoiceId1_{{$frame->id}}" name="VoiceId_{{$frame->id}}" class="custom-control-input" value="Mizuki">
-            <label class="custom-control-label" for="VoiceId1_{{$frame->id}}">Mizuki</label>
+            <input type="radio" id="VoiceId1_{{$frame->id}}" name="VoiceId_{{$frame->id}}" class="custom-control-input" value="Kazuha">
+            <label class="custom-control-label" for="VoiceId1_{{$frame->id}}">Kazuha</label>
+        </div>
+        <div class="custom-control custom-radio custom-control-inline">
+            <input type="radio" id="VoiceId3_{{$frame->id}}" name="VoiceId_{{$frame->id}}" class="custom-control-input" value="Tomoko">
+            <label class="custom-control-label" for="VoiceId3_{{$frame->id}}">Tomoko</label>
+        </div>
+        <div class="custom-control custom-radio custom-control-inline">
+            <input type="radio" id="VoiceId4_{{$frame->id}}" name="VoiceId_{{$frame->id}}" class="custom-control-input" value="Mizuki">
+            <label class="custom-control-label" for="VoiceId4_{{$frame->id}}">Mizuki</label>
         </div>
     </div>
 
@@ -47,6 +55,21 @@
         <div class="custom-control custom-radio custom-control-inline">
             <input type="radio" id="rate5_{{$frame->id}}" name="rate_{{$frame->id}}" class="custom-control-input" value="x-fast">
             <label class="custom-control-label" for="rate5_{{$frame->id}}">とても早口</label>
+        </div>
+        <div class="custom-control custom-radio custom-control-inline">
+            <input type="radio" id="rate6_{{$frame->id}}" name="rate_{{$frame->id}}" class="custom-control-input" value="other">
+            <label class="custom-control-label" for="rate6_{{$frame->id}}">以下で指定</label>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-4">
+            <select class="form-control" id="rate_other_{{$frame->id}}" name="rate_other_{{$frame->id}}">
+                <option value="100%">指定速度</option>
+                @for ($i = 20; $i <= 200; $i = $i + 5)
+                    <option value="{{$i}}%">{{$i}}%</option>
+                @endfor
+            </select>
         </div>
     </div>
 
@@ -86,6 +109,9 @@
         var textInput = document.getElementById("textInput_{{$frame->id}}");
         var voiceId = $('input:radio[name="VoiceId_{{$frame->id}}"]:checked').val();
         var rate = $('input:radio[name="rate_{{$frame->id}}"]:checked').val();
+        if (rate == 'other') {
+            rate = $("#rate_other_{{$frame->id}}").val();
+        }
 
         var data = { text: textInput.value, _token: tokens[0].content, voiceId: voiceId, rate: rate};
         xhr.send(EncodeHTMLForm_{{$frame->id}}(data));
