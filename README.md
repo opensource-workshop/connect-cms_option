@@ -31,7 +31,7 @@ Copy-Item -Path "${src_root_dir}composer-option.lock" -Destination "${dist_root_
 </details>
 
 <details>
-<summary>sync_option_private_2_dev.sh.example</summary>
+<summary>option_private_2_dev.ps1.example</summary>
 
 ```shell
 # コピー元のルートPATH
