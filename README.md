@@ -8,7 +8,7 @@ https://github.com/opensource-workshop/connect-cms
 データベースの migration は以下のコマンドで行います。  
 php artisan migrate --path=database/migrations_option  
 
-#
+# オプションリポジトリ ←→ 開発環境にコピー(win)
 
 <details>
 <summary>dev_2_option_private.ps1.example</summary>
