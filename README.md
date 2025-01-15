@@ -8,10 +8,12 @@ https://github.com/opensource-workshop/connect-cms
 データベースの migration は以下のコマンドで行います。  
 php artisan migrate --path=database/migrations_option  
 
-# オプションリポジトリ ←→ 開発環境にコピー(win)
+# オプションリポジトリ ←→ 開発環境にコピー
 
 <details>
 <summary>dev_2_option_private.ps1.example</summary>
+
+今のところ、composer-optionをコピーするのみ記載
 
 ```shell
 # コピー元のルートPATH
@@ -36,5 +38,35 @@ $dist_root_dir = "C:\path_to_dev_connect-cms\"
 
 Copy-Item -Path "${src_root_dir}composer-option.json" -Destination "${dist_root_dir}"
 Copy-Item -Path "${src_root_dir}composer-option.lock" -Destination "${dist_root_dir}"
+```
+</details>
+
+<details>
+<summary>sync_dev_2_option_private.sh.example</summary>
+
+```shell
+# Connect-CMSのあるディレクトリ
+src_root_dir='/path_to_dev_connect-cms/'
+# 外部プラグインのあるディレクトリ
+dist_root_dir='/path_to_option_private_dir/'
+
+# Composer Option
+cp -f "${src_root_dir}composer-option.json" "${dist_root_dir}"
+cp -f "${src_root_dir}composer-option.lock" "${dist_root_dir}"
+```
+</details>
+
+<details>
+<summary>sync_option_private_2_dev.sh.example</summary>
+
+```shell
+# 外部プラグインのあるディレクトリ
+src_root_dir='/path_to_option_private_dir/'
+# Connect-CMSのあるディレクトリ
+dist_root_dir='/path_to_dev_connect-cms/'
+
+# Composer Option
+cp -f "${src_root_dir}composer-option.json" "${dist_root_dir}"
+cp -f "${src_root_dir}composer-option.lock" "${dist_root_dir}"
 ```
 </details>
