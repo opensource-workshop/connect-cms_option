@@ -87,6 +87,34 @@ src_root_dir='/path_to_option_private_dir/'
 # Connect-CMSのあるディレクトリ
 dist_root_dir='/path_to_dev_connect-cms/'
 
+####################################################
+### connect-cms_option - Samplesプラグイン
+####################################################
+# プラグイン名
+option_plugin="Samples"
+option_plugin_controller_dir="${option_plugin}"
+# ${変数,,}はbashの機能で、全小文字に変換する
+option_plugin_resources_dir="${option_plugin,,}"
+option_plugin_model_dir=$option_plugin_controller_dir
+
+# コントローラー
+rsync -arvz --delete "${src_root_dir}app/PluginsOption/User/${option_plugin_controller_dir}" "${dist_root_dir}app/PluginsOption/User/"
+
+# モデル
+if [ ! -d "${dist_root_dir}app/ModelsOption/User/" ]; then
+    mkdir -p "${dist_root_dir}app/ModelsOption/User/"
+fi
+rsync -arvz --delete "${src_root_dir}app/ModelsOption/User/${option_plugin_model_dir}" "${dist_root_dir}app/ModelsOption/User/"
+
+# ビュー
+if [ ! -d "${dist_root_dir}resources/views/plugins_option/user/" ]; then
+    mkdir -p "${dist_root_dir}resources/views/plugins_option/user/"
+fi
+rsync -arvz --delete "${src_root_dir}resources/views/plugins_option/user/${option_plugin_resources_dir}" "${dist_root_dir}resources/views/plugins_option/user/"
+
+# マイグレーション
+rsync -arvz --delete  --include '*sample*' --exclude 'migrations_option/*' "${src_root_dir}database/migrations_option" "${dist_root_dir}database/"
+
 # Composer Option
 cp -f "${src_root_dir}composer-option.json" "${dist_root_dir}"
 cp -f "${src_root_dir}composer-option.lock" "${dist_root_dir}"
