@@ -10,10 +10,14 @@ php artisan migrate --path=database/migrations_option
 
 # オプションリポジトリ ←→ 開発環境にコピー
 
-<details>
-<summary>dev_2_option_private.ps1.example</summary>
+コピーシェル・バッチ等のサンプルです。<br>
+環境に応じて修正して利用してください。<br>
 
-今のところ、composer-optionをコピーするのみ記載
+<details>
+<summary>(windows) dev_2_option_private.ps1.example</summary>
+
+開発環境 → オプションリポジトリ にコピーするサンプル<br>
+今のところ、composer-optionをコピーするのみ記載<br>
 
 ```shell
 # コピー元のルートPATH
@@ -28,7 +32,10 @@ Copy-Item -Path "${src_root_dir}composer-option.lock" -Destination "${dist_root_
 </details>
 
 <details>
-<summary>option_private_2_dev.ps1.example</summary>
+<summary>(windows) option_private_2_dev.ps1.example</summary>
+
+開発環境 → オプションリポジトリ にコピーするサンプル<br>
+今のところ、composer-optionをコピーするのみ記載<br>
 
 ```shell
 # コピー元のルートPATH
@@ -42,7 +49,17 @@ Copy-Item -Path "${src_root_dir}composer-option.lock" -Destination "${dist_root_
 </details>
 
 <details>
-<summary>sync_dev_2_option_private.sh.example</summary>
+<summary>(windows) github_copy.bat</summary>
+
+開発環境 → オプションリポジトリ にコピーするサンプル<br>
+https://github.com/opensource-workshop/connect-cms_option/blob/master/github_copy.bat
+</details>
+
+<details>
+<summary>(linux) sync_dev_2_option_private.sh.example</summary>
+
+開発環境 → オプションリポジトリ にコピーするサンプル<br>
+今のところ、composer-optionをコピーするのみ記載<br>
 
 ```shell
 # Connect-CMSのあるディレクトリ
@@ -57,7 +74,10 @@ cp -f "${src_root_dir}composer-option.lock" "${dist_root_dir}"
 </details>
 
 <details>
-<summary>sync_option_private_2_dev.sh.example</summary>
+<summary>(linux) sync_option_private_2_dev.sh.example</summary>
+
+オプションリポジトリ → 開発環境 にコピーするサンプル<br>
+今のところ、composer-optionをコピーするのみ記載<br>
 
 ```shell
 # 外部プラグインのあるディレクトリ
