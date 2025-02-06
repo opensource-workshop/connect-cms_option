@@ -8,6 +8,7 @@ use App\ModelsOption\User\Samples\Sample;
 use App\ModelsOption\User\Samples\SamplePost;
 use App\PluginsOption\User\UserPluginOptionBase;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Validator;
  * php artisan migrate:rollback --path=database/migrations_option
  *
  * @author 永原　篤 <nagahara@opensource-workshop.jp>
+ * @author 牟田口 満 <mutaguchi@opensource-workshop.jp>
  * @copyright OpenSource-WorkShop Co.,Ltd. All Rights Reserved
  * @category サンプル・プラグイン
  * @package Controller
@@ -79,16 +81,16 @@ class SamplesPlugin extends UserPluginOptionBase
         }
 
         // 一度読んでいれば、そのPOSTを再利用する。
-        if (!empty($this->post)) {
+        if ($this->post) {
             return $this->post;
         }
 
         // 指定された記事を取得
         $this->post = SamplePost::whereExists(function ($query) {
-            $query->select(\DB::raw(1))
-                  ->from('samples')
-                  ->whereRaw('sample_posts.sample_id = samples.id')
-                  ->where('samples.bucket_id', $this->frame->bucket_id);
+            $query->select(DB::raw(1))
+                ->from('samples')
+                ->whereRaw('sample_posts.sample_id = samples.id')
+                ->where('samples.bucket_id', $this->frame->bucket_id);
         })
         ->firstOrNew(['id' => $id]);
 
@@ -140,9 +142,12 @@ class SamplesPlugin extends UserPluginOptionBase
         // 記事取得
         $post = $this->getPost($post_id);
 
-        // 記事を取得できなかったら404
-        if (empty($post->sample_id)) {
-            return $this->viewError("404_inframe", null, '詳細取得NG');
+        // 編集時
+        if ($post_id) {
+            // 記事を取得できなかったら404
+            if (empty($post->sample_id)) {
+                return $this->viewError("404_inframe", null, '詳細取得NG');
+            }
         }
 
         // 編集画面を呼び出す。
@@ -345,20 +350,28 @@ class SamplesPlugin extends UserPluginOptionBase
      */
     private function saveSample($request, $frame_id, $bucket_id)
     {
-        // バケツの取得。なければ登録。
-        $bucket = Buckets::updateOrCreate(
-            ['id' => $bucket_id],
-            ['bucket_name' => $request->bucket_name, 'plugin_name' => 'samples'],
-        );
+        DB::beginTransaction();
+        try {
+            // バケツの取得。なければ登録。
+            $bucket = Buckets::updateOrCreate(
+                ['id' => $bucket_id],
+                ['bucket_name' => $request->bucket_name, 'plugin_name' => 'samples'],
+            );
 
-        // フレームにバケツの紐づけ
-        $frame = Frame::find($frame_id)->update(['bucket_id' => $bucket->id]);
+            // フレームにバケツの紐づけ
+            $frame = Frame::find($frame_id)->update(['bucket_id' => $bucket->id]);
 
-        // プラグインバケツを取得(なければ新規オブジェクト)
-        // プラグインバケツにデータを設定して保存
-        $sample = $this->getPluginBucket($bucket->id);
-        $sample->bucket_name = $request->bucket_name;
-        $sample->save();
+            // プラグインバケツを取得(なければ新規オブジェクト)
+            // プラグインバケツにデータを設定して保存
+            $sample = $this->getPluginBucket($bucket->id);
+            $sample->bucket_name = $request->bucket_name;
+            $sample->save();
+
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
 
         return $bucket->id;
     }
@@ -378,19 +391,25 @@ class SamplesPlugin extends UserPluginOptionBase
             return;
         }
 
-        // FrameのバケツIDのクリア
-        Frame::where('id', $frame_id)->update(['bucket_id' => null]);
+        DB::beginTransaction();
+        try {
+            // FrameのバケツIDのクリア
+            Frame::where('id', $frame_id)->update(['bucket_id' => null]);
 
-        // バケツ削除
-        Buckets::find($sample->bucket_id)->delete();
+            // バケツ削除
+            Buckets::find($sample->bucket_id)->delete();
 
-        // コンテンツ削除
-        SamplePost::where('sample_id', $sample->id)->delete();
+            // コンテンツ削除
+            SamplePost::where('sample_id', $sample->id)->delete();
 
-        // プラグイン・バケツ削除
-        $sample->delete();
+            // プラグイン・バケツ削除
+            $sample->delete();
 
-        return;
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
 
     /**
