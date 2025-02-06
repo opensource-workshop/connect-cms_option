@@ -110,7 +110,7 @@ class SamplesPlugin extends UserPluginOptionBase
     public function index($request, $page_id, $frame_id, $post_id = null)
     {
         // バケツ未設定の場合はバケツ空テンプレートを呼び出す
-        if (!isset($this->frame) || !$this->frame->bucket_id) {
+        if (empty($this->frame) || empty($this->frame->bucket_id) || empty($this->buckets)) {
             // バケツ空テンプレートを呼び出す。
             return $this->commonView('empty_bucket');
         }
