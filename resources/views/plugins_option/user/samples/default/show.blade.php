@@ -8,7 +8,7 @@
 @extends('core.cms_frame_base')
 
 @section("plugin_contents_$frame->id")
-<div class="card">
+<div class="card form-group">
     <div class="card-header">{{$post->title}}</div>
     <div class="card-body">{{$post->content}}</div>
     @can('posts.update',[[$post, $frame->plugin_name, $buckets]])
@@ -23,11 +23,9 @@
 </div>
 
 {{-- 一覧へ戻る --}}
-<nav class="row">
-    <div class="col-12 text-center mt-3">
-        <a href="{{url('/')}}{{$page->getLinkUrl()}}#frame-{{$frame->id}}" class="btn btn-info">
-            <i class="fas fa-list"></i> <span class="d-none d-sm-inline">{{__('messages.to_list')}}</span>
-        </a>
-    </div>
+<nav class="text-center">
+    <a href="{{url('/')}}{{$page->getLinkUrl()}}#frame-{{$frame->id}}" class="btn btn-info">
+        <i class="fas fa-list"></i> <span class="d-none d-sm-inline">{{__('messages.to_list')}}</span>
+    </a>
 </nav>
 @endsection
