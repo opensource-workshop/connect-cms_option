@@ -2,6 +2,7 @@
  * バケツ編集画面テンプレート
  *
  * @author 永原　篤 <nagahara@opensource-workshop.jp>
+ * @author 牟田口 満 <mutaguchi@opensource-workshop.jp>
  * @copyright OpenSource-WorkShop Co.,Ltd. All Rights Reserved
  * @category サンプル・プラグイン
 --}}
@@ -16,6 +17,8 @@
 
 {{-- 共通エラーメッセージ 呼び出し --}}
 @include('plugins.common.errors_form_line')
+{{-- 登録後メッセージ表示 --}}
+@include('plugins.common.flash_message_for_frame')
 
 @if (empty($sample->id) && $action != 'createBuckets')
     <div class="alert alert-warning">

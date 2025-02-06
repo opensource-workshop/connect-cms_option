@@ -203,6 +203,14 @@ class SamplesPlugin extends UserPluginOptionBase
                 'content' => $request->content,
             ],
         );
+
+        if ($post_id) {
+            $message = '変更しました。';
+        } else {
+            $message = '登録しました。';
+        }
+        session()->flash("flash_message_for_frame{$frame_id}", $message);
+
         // 登録後はリダイレクトして編集ページを開く。
         return new Collection(['redirect_path' => url('/') . "/plugin/samples/index/" . $page_id . "/" . $frame_id . "/" . $post->id . "#frame-" . $frame_id]);
     }
@@ -238,6 +246,8 @@ class SamplesPlugin extends UserPluginOptionBase
         // データを削除
         SamplePost::where('id', $post_id)->delete();
 
+        session()->flash("flash_message_for_frame{$frame_id}", '削除しました。');
+
         // 削除後はリダイレクトして一覧ページを開く。
         return new Collection(['redirect_path' => url('/') . "/plugin/samples/index/" . $page_id . "/" . $frame_id . "#frame-" . $frame_id]);
     }
@@ -268,6 +278,8 @@ class SamplesPlugin extends UserPluginOptionBase
     {
         // FrameのバケツIDの更新
         Frame::where('id', $frame_id)->update(['bucket_id' => $request->select_bucket]);
+
+        session()->flash("flash_message_for_frame{$frame_id}", '変更しました。');
     }
 
     /**
@@ -334,7 +346,14 @@ class SamplesPlugin extends UserPluginOptionBase
             return back()->withErrors($validator)->withInput();
         }
 
+        if ($bucket_id) {
+            $message = '変更しました。';
+        } else {
+            $message = '登録しました。';
+        }
         $bucket_id = $this->saveSample($request, $frame_id, $bucket_id);
+
+        session()->flash("flash_message_for_frame{$frame_id}", $message);
 
         // 登録後はリダイレクトして編集ページを開く。
         return new Collection(['redirect_path' => url('/') . "/plugin/samples/editBuckets/" . $page_id . "/" . $frame_id . "/" . $bucket_id . "#frame-" . $frame_id]);

@@ -2,12 +2,17 @@
  * 表示画面テンプレート（カード形式）
  *
  * @author 永原　篤 <nagahara@opensource-workshop.jp>
+ * @author 牟田口 満 <mutaguchi@opensource-workshop.jp>
  * @copyright OpenSource-WorkShop Co.,Ltd. All Rights Reserved
  * @category サンプル・プラグイン
  --}}
 @extends('core.cms_frame_base')
 
 @section("plugin_contents_$frame->id")
+
+    {{-- 登録後メッセージ表示 --}}
+    @include('plugins.common.flash_message_for_frame')
+
     @if (isset($frame) && $frame->bucket_id)
         {{-- バケツあり --}}
 
