@@ -13,16 +13,12 @@
 @include('plugins.common.errors_form_line')
 
 {{-- 投稿用フォーム --}}
-@if (empty($post->id))
-    <form action="{{url('/')}}/redirect/plugin/samples/save/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}" method="POST" class="" name="form_post{{$frame_id}}">
-        <input type="hidden" name="redirect_path" value="{{url('/')}}/plugin/samples/edit/{{$page->id}}/{{$frame_id}}#frame-{{$frame_id}}">
-@else
-    <form action="{{url('/')}}/redirect/plugin/samples/save/{{$page->id}}/{{$frame_id}}/{{$post->id}}#frame-{{$frame->id}}" method="POST" class="" name="form_post{{$frame_id}}">
-        <input type="hidden" name="redirect_path" value="{{url('/')}}/plugin/samples/edit/{{$page->id}}/{{$frame_id}}/{{$post->id}}#frame-{{$frame_id}}">
-@endif
+<form action="{{url('/')}}/redirect/plugin/samples/save/{{$page->id}}/{{$frame_id}}@if($post->id)/{{$post->id}}@endif#frame-{{$frame->id}}" method="post" name="form_post{{$frame_id}}">
     {{ csrf_field() }}
+    <input type="hidden" name="redirect_path" value="{{url('/')}}/plugin/samples/edit/{{$page->id}}/{{$frame_id}}@if($post->id)/{{$post->id}}@endif#frame-{{$frame_id}}">
+
     <div class="form-group row">
-        <label class="col-md-2 control-label text-md-right">タイトル <label class="badge badge-danger">必須</label></label>
+        <label class="col-md-2 control-label text-md-right">タイトル <span class="badge badge-danger">必須</span></label>
         <div class="col-md-10">
             <input type="text" name="title" value="{{old('title', $post->title)}}" class="form-control @if ($errors->has('title')) border-danger @endif">
             @include('plugins.common.errors_inline', ['name' => 'title'])
