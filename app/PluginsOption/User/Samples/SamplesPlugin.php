@@ -411,26 +411,4 @@ class SamplesPlugin extends UserPluginOptionBase
             throw $e;
         }
     }
-
-    /**
-     * 権限設定　変更画面を表示する
-     *
-     * @see UserPluginBase::editBucketsRoles()
-     */
-    public function editBucketsRoles($request, $page_id, $frame_id, $id = null, $use_approval = false)
-    {
-        // 承認機能は使わない
-        return parent::editBucketsRoles($request, $page_id, $frame_id, $id, $use_approval);
-    }
-
-    /**
-     * 権限設定を保存する
-     *
-     * @see UserPluginBase::saveBucketsRoles()
-     */
-    public function saveBucketsRoles($request, $page_id, $frame_id, $id = null, $use_approval = false)
-    {
-        // 承認機能は使わない
-        return parent::saveBucketsRoles($request, $page_id, $frame_id, $id, $use_approval);
-    }
 }
