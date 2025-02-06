@@ -17,7 +17,7 @@
         {{-- バケツあり --}}
 
         {{-- 新規登録 --}}
-        @can('posts.create',[[null, 'bbses', $buckets]])
+        @can('posts.create',[[null, $frame->plugin_name, $buckets]])
             @if (isset($frame) && $frame->bucket_id)
                 <div class="row">
                     <p class="text-right col-12">
