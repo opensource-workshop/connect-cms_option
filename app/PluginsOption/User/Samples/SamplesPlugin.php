@@ -8,6 +8,7 @@ use App\ModelsOption\User\Samples\Sample;
 use App\ModelsOption\User\Samples\SamplePost;
 use App\PluginsOption\User\UserPluginOptionBase;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 /**
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Validator;
  * php artisan migrate:rollback --path=database/migrations_option
  *
  * @author 永原　篤 <nagahara@opensource-workshop.jp>
+ * @author 牟田口 満 <mutaguchi@opensource-workshop.jp>
  * @copyright OpenSource-WorkShop Co.,Ltd. All Rights Reserved
  * @category サンプル・プラグイン
  * @package Controller
@@ -79,16 +81,16 @@ class SamplesPlugin extends UserPluginOptionBase
         }
 
         // 一度読んでいれば、そのPOSTを再利用する。
-        if (!empty($this->post)) {
+        if ($this->post) {
             return $this->post;
         }
 
         // 指定された記事を取得
         $this->post = SamplePost::whereExists(function ($query) {
-            $query->select(\DB::raw(1))
-                  ->from('samples')
-                  ->whereRaw('sample_posts.sample_id = samples.id')
-                  ->where('samples.bucket_id', $this->frame->bucket_id);
+            $query->select(DB::raw(1))
+                ->from('samples')
+                ->whereRaw('sample_posts.sample_id = samples.id')
+                ->where('samples.bucket_id', $this->frame->bucket_id);
         })
         ->firstOrNew(['id' => $id]);
 
