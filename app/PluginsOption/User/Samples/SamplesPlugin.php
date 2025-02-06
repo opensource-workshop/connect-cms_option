@@ -2,15 +2,13 @@
 
 namespace App\PluginsOption\User\Samples;
 
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Validator;
-
 use App\Models\Common\Buckets;
 use App\Models\Common\Frame;
 use App\ModelsOption\User\Samples\Sample;
 use App\ModelsOption\User\Samples\SamplePost;
-
 use App\PluginsOption\User\UserPluginOptionBase;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * サンプル・プラグイン
@@ -142,9 +140,9 @@ class SamplesPlugin extends UserPluginOptionBase
         // 記事取得
         $post = $this->getPost($post_id);
 
-        // 記事を取得できなかったら403
+        // 記事を取得できなかったら404
         if (empty($post->sample_id)) {
-            return $this->viewError("403_inframe", null, '詳細取得NG');
+            return $this->viewError("404_inframe", null, '詳細取得NG');
         }
 
         // 編集画面を呼び出す。
@@ -216,9 +214,9 @@ class SamplesPlugin extends UserPluginOptionBase
         // 記事取得
         $post = $this->getPost($post_id);
 
-        // 記事を取得できなかったら403
+        // 記事を取得できなかったら404
         if (empty($post->sample_id)) {
-            return $this->viewError("403_inframe", null, '詳細取得NG');
+            return $this->viewError("404_inframe", null, '詳細取得NG');
         }
 
         // 編集画面を呼び出す。
