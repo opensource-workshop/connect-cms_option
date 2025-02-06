@@ -35,10 +35,10 @@
     </div>
 
     @if (empty($sample->id))
-    <form action="{{url('/')}}/redirect/plugin/samples/saveBuckets/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}" method="POST">
+    <form action="{{url('/')}}/redirect/plugin/samples/saveBuckets/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}" method="post">
         <input type="hidden" name="redirect_path" value="{{url('/')}}/plugin/samples/createBuckets/{{$page->id}}/{{$frame_id}}#frame-{{$frame_id}}">
     @else
-    <form action="{{url('/')}}/redirect/plugin/samples/saveBuckets/{{$page->id}}/{{$frame_id}}/{{$sample->bucket_id}}#frame-{{$frame->id}}" method="POST">
+    <form action="{{url('/')}}/redirect/plugin/samples/saveBuckets/{{$page->id}}/{{$frame_id}}/{{$sample->bucket_id}}#frame-{{$frame->id}}" method="post">
         <input type="hidden" name="redirect_path" value="{{url('/')}}/plugin/samples/editBuckets/{{$page->id}}/{{$frame_id}}#frame-{{$frame_id}}">
     @endif
         {{ csrf_field() }}
