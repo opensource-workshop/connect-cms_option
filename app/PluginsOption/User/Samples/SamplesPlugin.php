@@ -261,9 +261,15 @@ class SamplesPlugin extends UserPluginOptionBase
      */
     public function listBuckets($request, $page_id, $frame_id, $id = null)
     {
+        $plugin_buckets = Sample::orderBy('created_at', 'desc')->paginate(10, ["*"], "frame_{$frame_id}_page");
+        if ($plugin_buckets->isEmpty()) {
+            // バケツ空テンプレートを呼び出す。
+            return $this->commonView('empty_bucket_setting');
+        }
+
         // 表示テンプレートを呼び出す。
         return $this->view('list_buckets', [
-            'plugin_buckets' => Sample::orderBy('created_at', 'desc')->paginate(10, ["*"], "frame_{$frame_id}_page"),
+            'plugin_buckets' => $plugin_buckets,
         ]);
     }
 
@@ -307,10 +313,16 @@ class SamplesPlugin extends UserPluginOptionBase
             $bucket_id = $this->getBucketId();
         }
 
+        // 表示中のバケツデータ
+        $sample = $this->getPluginBucket($bucket_id);
+        if (empty($sample->id) && $this->action != 'createBuckets') {
+            // バケツ空テンプレートを呼び出す。
+            return $this->commonView('empty_bucket_setting');
+        }
+
         // 表示テンプレートを呼び出す。
         return $this->view('bucket', [
-            // 表示中のバケツデータ
-            'sample' => $this->getPluginBucket($bucket_id),
+            'sample' => $sample,
         ]);
     }
 

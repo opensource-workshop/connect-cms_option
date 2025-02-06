@@ -14,17 +14,11 @@
 @endsection
 
 @section("plugin_setting_$frame->id")
+    {{-- 共通エラーメッセージ 呼び出し --}}
+    @include('plugins.common.errors_form_line')
+    {{-- 登録後メッセージ表示 --}}
+    @include('plugins.common.flash_message_for_frame')
 
-{{-- 共通エラーメッセージ 呼び出し --}}
-@include('plugins.common.errors_form_line')
-{{-- 登録後メッセージ表示 --}}
-@include('plugins.common.flash_message_for_frame')
-
-@if (empty($sample->id) && $action != 'createBuckets')
-    <div class="alert alert-warning">
-        <i class="fas fa-exclamation-circle"></i> {{ __('messages.empty_bucket_setting', ['plugin_name' => 'サンプル']) }}
-    </div>
-@else
     <div class="alert alert-info">
         <i class="fas fa-exclamation-circle"></i>
         @if (empty($sample->id))
@@ -99,5 +93,4 @@
             </div>
         </div>
     </div>
-@endif
 @endsection

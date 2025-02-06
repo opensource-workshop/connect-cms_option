@@ -14,16 +14,9 @@
 @endsection
 
 @section("plugin_setting_$frame->id")
+    {{-- 登録後メッセージ表示 --}}
+    @include('plugins.common.flash_message_for_frame')
 
-{{-- 登録後メッセージ表示 --}}
-@include('plugins.common.flash_message_for_frame')
-
-@if ($plugin_buckets->isEmpty())
-    <div class="alert alert-warning">
-        <i class="fas fa-exclamation-circle"></i>
-        選択画面から、使用するサンプルを選択するか、作成してください。
-    </div>
-@else
     <form action="{{url('/')}}/redirect/plugin/samples/changeBuckets/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}" method="POST" class="">
         {{ csrf_field() }}
         <input type="hidden" name="redirect_path" value="{{url('/')}}/plugin/samples/listBuckets/{{$page->id}}/{{$frame_id}}#frame-{{$frame_id}}">
@@ -62,5 +55,4 @@
             <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> 表示サンプル変更</button>
         </div>
     </form>
-@endif
 @endsection
