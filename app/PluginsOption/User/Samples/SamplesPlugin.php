@@ -140,9 +140,12 @@ class SamplesPlugin extends UserPluginOptionBase
         // 記事取得
         $post = $this->getPost($post_id);
 
-        // 記事を取得できなかったら404
-        if (empty($post->sample_id)) {
-            return $this->viewError("404_inframe", null, '詳細取得NG');
+        // 編集時
+        if ($post_id) {
+            // 記事を取得できなかったら404
+            if (empty($post->sample_id)) {
+                return $this->viewError("404_inframe", null, '詳細取得NG');
+            }
         }
 
         // 編集画面を呼び出す。
