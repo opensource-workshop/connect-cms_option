@@ -61,13 +61,34 @@ https://github.com/opensource-workshop/connect-cms_option/blob/master/github_cop
 <summary>(linux) sync_dev_2_option_private.sh.example</summary>
 
 開発環境 → オプションリポジトリ にコピーするサンプル<br>
-今のところ、composer-optionをコピーするのみ記載<br>
 
 ```shell
 # Connect-CMSのあるディレクトリ
 src_root_dir='/path_to_dev_connect-cms/'
 # 外部プラグインのあるディレクトリ
 dist_root_dir='/path_to_option_private_dir/'
+
+####################################################
+### connect-cms_option - Samplesプラグイン
+####################################################
+# プラグイン名
+option_plugin="Samples"
+option_plugin_controller_dir="${option_plugin}"
+# ${変数,,}はbashの機能で、全小文字に変換する
+option_plugin_resources_dir="${option_plugin,,}"
+option_plugin_model_dir=$option_plugin_controller_dir
+
+# コントローラー
+rsync -arvz --delete "${src_root_dir}app/PluginsOption/User/${option_plugin_controller_dir}" "${dist_root_dir}app/PluginsOption/User/"
+
+# モデル
+rsync -arvz --delete "${src_root_dir}app/ModelsOption/User/${option_plugin_model_dir}" "${dist_root_dir}app/ModelsOption/User/"
+
+# ビュー
+rsync -arvz --delete "${src_root_dir}resources/views/plugins_option/user/${option_plugin_resources_dir}" "${dist_root_dir}resources/views/plugins_option/user/"
+
+# マイグレーション
+rsync -arvz --delete  --include '*sample*' --exclude 'migrations_option/*' "${src_root_dir}database/migrations_option" "${dist_root_dir}database/"
 
 # Composer Option
 cp -f "${src_root_dir}composer-option.json" "${dist_root_dir}"
@@ -79,7 +100,6 @@ cp -f "${src_root_dir}composer-option.lock" "${dist_root_dir}"
 <summary>(linux) sync_option_private_2_dev.sh.example</summary>
 
 オプションリポジトリ → 開発環境 にコピーするサンプル<br>
-今のところ、composer-optionをコピーするのみ記載<br>
 
 ```shell
 # 外部プラグインのあるディレクトリ
