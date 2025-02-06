@@ -33,7 +33,7 @@
         <div class="row">
             @foreach($posts as $post_item)
                 <dt class="col-3">
-                    <a href="{{URL::to('/')}}/plugin/samples/show/{{$page->id}}/{{$frame_id}}/{{$post_item->id}}#frame-{{$frame->id}}">
+                    <a href="{{url('/')}}/plugin/samples/show/{{$page->id}}/{{$frame_id}}/{{$post_item->id}}#frame-{{$frame->id}}">
                         {{$post_item->title}}
                     </a>
                 </dt>

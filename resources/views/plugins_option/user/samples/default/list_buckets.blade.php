@@ -55,7 +55,7 @@
         @include('plugins.common.user_paginate', ['posts' => $plugin_buckets, 'frame' => $frame, 'aria_label_name' => $frame->plugin_name_full . '選択', 'class' => 'form-group'])
 
         <div class="text-center">
-            <button type="button" class="btn btn-secondary mr-2" onclick="location.href='{{URL::to($page->permanent_link)}}#frame-{{$frame->id}}'">
+            <button type="button" class="btn btn-secondary mr-2" onclick="location.href='{{url($page->permanent_link)}}#frame-{{$frame->id}}'">
                 <i class="fas fa-times"></i>
                 <span class="d-none d-md-inline"> キャンセル</span>
             </button>

@@ -56,7 +56,7 @@
             <div class="row">
                 <div class="col-3"></div>
                 <div class="col-6">
-                    <button type="button" class="btn btn-secondary mr-2" onclick="location.href='{{URL::to($page->permanent_link)}}'">
+                    <button type="button" class="btn btn-secondary mr-2" onclick="location.href='{{url($page->permanent_link)}}'">
                         <i class="fas fa-times"></i><span class="{{$frame->getSettingButtonCaptionClass('md')}}"> キャンセル</span>
                     </button>
                     <button type="submit" class="btn btn-primary form-horizontal"><i class="fas fa-check"></i>

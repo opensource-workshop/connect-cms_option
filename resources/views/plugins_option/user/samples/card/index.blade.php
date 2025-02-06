@@ -35,7 +35,7 @@
                 <div class="col-md-3 mb-3">
                     <div class="card">
                         <div class="card-header">
-                            <a href="{{URL::to('/')}}/plugin/samples/show/{{$page->id}}/{{$frame_id}}/{{$post_item->id}}#frame-{{$frame->id}}">
+                            <a href="{{url('/')}}/plugin/samples/show/{{$page->id}}/{{$frame_id}}/{{$post_item->id}}#frame-{{$frame->id}}">
                                 {{$post_item->title}}
                             </a>
                         </div>
