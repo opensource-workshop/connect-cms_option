@@ -2,6 +2,7 @@
  * バケツ編集画面テンプレート
  *
  * @author 永原　篤 <nagahara@opensource-workshop.jp>
+ * @author 牟田口 満 <mutaguchi@opensource-workshop.jp>
  * @copyright OpenSource-WorkShop Co.,Ltd. All Rights Reserved
  * @category サンプル・プラグイン
 --}}
@@ -13,15 +14,11 @@
 @endsection
 
 @section("plugin_setting_$frame->id")
+    {{-- 共通エラーメッセージ 呼び出し --}}
+    @include('plugins.common.errors_form_line')
+    {{-- 登録後メッセージ表示 --}}
+    @include('plugins.common.flash_message_for_frame')
 
-{{-- 共通エラーメッセージ 呼び出し --}}
-@include('plugins.common.errors_form_line')
-
-@if (empty($sample->id) && $action != 'createBuckets')
-    <div class="alert alert-warning">
-        <i class="fas fa-exclamation-circle"></i> {{ __('messages.empty_bucket_setting', ['plugin_name' => 'サンプル']) }}
-    </div>
-@else
     <div class="alert alert-info">
         <i class="fas fa-exclamation-circle"></i>
         @if (empty($sample->id))
@@ -32,10 +29,10 @@
     </div>
 
     @if (empty($sample->id))
-    <form action="{{url('/')}}/redirect/plugin/samples/saveBuckets/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}" method="POST">
+    <form action="{{url('/')}}/redirect/plugin/samples/saveBuckets/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}" method="post">
         <input type="hidden" name="redirect_path" value="{{url('/')}}/plugin/samples/createBuckets/{{$page->id}}/{{$frame_id}}#frame-{{$frame_id}}">
     @else
-    <form action="{{url('/')}}/redirect/plugin/samples/saveBuckets/{{$page->id}}/{{$frame_id}}/{{$sample->bucket_id}}#frame-{{$frame->id}}" method="POST">
+    <form action="{{url('/')}}/redirect/plugin/samples/saveBuckets/{{$page->id}}/{{$frame_id}}/{{$sample->bucket_id}}#frame-{{$frame->id}}" method="post">
         <input type="hidden" name="redirect_path" value="{{url('/')}}/plugin/samples/editBuckets/{{$page->id}}/{{$frame_id}}#frame-{{$frame_id}}">
     @endif
         {{ csrf_field() }}
@@ -53,7 +50,7 @@
             <div class="row">
                 <div class="col-3"></div>
                 <div class="col-6">
-                    <button type="button" class="btn btn-secondary mr-2" onclick="location.href='{{URL::to($page->permanent_link)}}'">
+                    <button type="button" class="btn btn-secondary mr-2" onclick="location.href='{{url($page->permanent_link)}}'">
                         <i class="fas fa-times"></i><span class="{{$frame->getSettingButtonCaptionClass('md')}}"> キャンセル</span>
                     </button>
                     <button type="submit" class="btn btn-primary form-horizontal"><i class="fas fa-check"></i>
@@ -96,5 +93,4 @@
             </div>
         </div>
     </div>
-@endif
 @endsection

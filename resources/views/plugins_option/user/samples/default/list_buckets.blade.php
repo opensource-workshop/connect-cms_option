@@ -2,6 +2,7 @@
  * 編集画面(データ選択)テンプレート
  *
  * @author 永原　篤 <nagahara@opensource-workshop.jp>
+ * @author 牟田口 満 <mutaguchi@opensource-workshop.jp>
  * @copyright OpenSource-WorkShop Co.,Ltd. All Rights Reserved
  * @category サンプル・プラグイン
  --}}
@@ -13,12 +14,9 @@
 @endsection
 
 @section("plugin_setting_$frame->id")
-@if ($plugin_buckets->isEmpty())
-    <div class="alert alert-warning">
-        <i class="fas fa-exclamation-circle"></i>
-        選択画面から、使用するサンプルを選択するか、作成してください。
-    </div>
-@else
+    {{-- 登録後メッセージ表示 --}}
+    @include('plugins.common.flash_message_for_frame')
+
     <form action="{{url('/')}}/redirect/plugin/samples/changeBuckets/{{$page->id}}/{{$frame_id}}#frame-{{$frame->id}}" method="POST" class="">
         {{ csrf_field() }}
         <input type="hidden" name="redirect_path" value="{{url('/')}}/plugin/samples/listBuckets/{{$page->id}}/{{$frame_id}}#frame-{{$frame_id}}">
@@ -50,12 +48,11 @@
         @include('plugins.common.user_paginate', ['posts' => $plugin_buckets, 'frame' => $frame, 'aria_label_name' => $frame->plugin_name_full . '選択', 'class' => 'form-group'])
 
         <div class="text-center">
-            <button type="button" class="btn btn-secondary mr-2" onclick="location.href='{{URL::to($page->permanent_link)}}#frame-{{$frame->id}}'">
+            <button type="button" class="btn btn-secondary mr-2" onclick="location.href='{{url($page->permanent_link)}}#frame-{{$frame->id}}'">
                 <i class="fas fa-times"></i>
                 <span class="d-none d-md-inline"> キャンセル</span>
             </button>
             <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> 表示サンプル変更</button>
         </div>
     </form>
-@endif
 @endsection
