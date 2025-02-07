@@ -42,7 +42,6 @@ class SamplesPlugin extends UserPluginOptionBase
     {
         // 標準関数以外で画面などから呼ばれる関数の定義
         $functions = array();
-        $functions['get']  = ['index'];
         return $functions;
     }
 
@@ -73,7 +72,7 @@ class SamplesPlugin extends UserPluginOptionBase
     {
         if (is_null($action)) {
             // プラグイン内からの呼び出しを想定。処理を通す。
-        } elseif (in_array($action, ['index', 'save', 'delete'])) {
+        } elseif (in_array($action, ['save', 'delete'])) {
             // コアから呼び出し。posts.update|posts.deleteの権限チェックを指定したアクションは、処理を通す。
         } else {
             // それ以外のアクションは null で返す。
@@ -211,8 +210,8 @@ class SamplesPlugin extends UserPluginOptionBase
         }
         session()->flash("flash_message_for_frame{$frame_id}", $message);
 
-        // 登録後はリダイレクトして編集ページを開く。
-        return new Collection(['redirect_path' => url('/') . "/plugin/samples/index/" . $page_id . "/" . $frame_id . "/" . $post->id . "#frame-" . $frame_id]);
+        // リダイレクトして初期表示ページを開く。
+        return new Collection(['redirect_path' => url($this->page->permanent_link) . "#frame-{$frame_id}" ]);
     }
 
     /**
@@ -248,8 +247,7 @@ class SamplesPlugin extends UserPluginOptionBase
 
         session()->flash("flash_message_for_frame{$frame_id}", '削除しました。');
 
-        // 削除後はリダイレクトして一覧ページを開く。
-        return new Collection(['redirect_path' => url('/') . "/plugin/samples/index/" . $page_id . "/" . $frame_id . "#frame-" . $frame_id]);
+        // リダイレクト先を指定しないため、画面から渡されたredirect_pathに飛ぶ
     }
 
     /**
