@@ -76,7 +76,7 @@
                 {{-- 削除ボタン --}}
                 <form action="{{url('/')}}/redirect/plugin/samples/delete/{{$page->id}}/{{$frame_id}}/{{$post->id}}#frame-{{$frame->id}}" method="POST">
                     {{csrf_field()}}
-                    <input type="hidden" name="redirect_path" value="{{$page->permanent_link}}#frame-{{$frame_id}}">
+                    <input type="hidden" name="redirect_path" value="{{url($page->permanent_link)}}#frame-{{$frame_id}}">
                     <button type="submit" class="btn btn-danger" onclick="javascript:return confirm('データを削除します。\nよろしいですか？')">
                         <i class="fas fa-check"></i> 本当に削除する
                     </button>
